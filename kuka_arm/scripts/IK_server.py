@@ -9,14 +9,18 @@
 
 # Author: Harsh Pandya
 
-# import modules
+### import modules
+# Ros modules
 import rospy
 import tf
+# Service request definitions
 from kuka_arm.srv import *
+# Messages definitions
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 from geometry_msgs.msg import Pose
-from mpmath import *
-from sympy import *
+# helper libraries
+from mpmath import * # for arbitraty floating point precision operations
+from sympy import * # for symbolic operations
 
 
 def handle_calculate_IK(req):
