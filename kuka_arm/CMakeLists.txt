@@ -67,7 +67,6 @@ find_package(Eigen3 REQUIRED)
  add_service_files(
    FILES
    CalculateIK.srv
-   CalculateFK.srv
 #   Service2.srv
  )
 

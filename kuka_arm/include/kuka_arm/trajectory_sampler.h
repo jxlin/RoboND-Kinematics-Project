@@ -33,48 +33,60 @@
 
 #include <kuka_arm/CalculateIK.h>
 
+#include <iostream>
+#include <fstream>
+#include <string>
+
+namespace tools
+{
+    void savePathToFile( const std::string fname, const std::vector< geometry_msgs::Pose >& poses );
+    void _saveSinglePoseToFile( std::ofstream& fHandle, const geometry_msgs::Pose& pose );
+}
+
 class TrajectorySampler
 {
-public:
-  explicit TrajectorySampler(ros::NodeHandle nh);
-  ~TrajectorySampler();
+    public:
 
-private:
-  ros::NodeHandle nh_;
+    explicit TrajectorySampler(ros::NodeHandle nh);
+    ~TrajectorySampler();
 
-  int cycle_counter;
-  std::string target_description_param;
+    private:
 
-  const std::string PLANNING_GROUP = "arm_group";
-  const std::string GRIPPER_GROUP = "gripper_group";
-  const std::string SHELF_MESH_PATH =
-    "package://kuka_arm/models/kinematics_shelf/kinematics_shelf.dae";
-  const std::string BIN_MESH_PATH =
-    "package://kuka_arm/models/kinematics_bin/kinematics_bin.dae";
+    ros::NodeHandle nh_;
+
+    int cycle_counter;
+    std::string target_description_param;
+
+    const std::string PLANNING_GROUP = "arm_group";
+    const std::string GRIPPER_GROUP = "gripper_group";
+    const std::string SHELF_MESH_PATH =
+        "package://kuka_arm/models/kinematics_shelf/kinematics_shelf.dae";
+    const std::string BIN_MESH_PATH =
+        "package://kuka_arm/models/kinematics_bin/kinematics_bin.dae";
 
 
-  moveit::planning_interface::MoveGroupInterface move_group;
-  moveit::planning_interface::MoveGroupInterface eef_group;
+    moveit::planning_interface::MoveGroupInterface move_group;
+    moveit::planning_interface::MoveGroupInterface eef_group;
 
-  const robot_state::JointModelGroup *joint_model_group;
-  const robot_state::JointModelGroup *gripper_joint_model_group;
+    const robot_state::JointModelGroup *joint_model_group;
+    const robot_state::JointModelGroup *gripper_joint_model_group;
 
-  // Define PlanningSceneInterface object to add and remove collision objects
-  moveit::planning_interface::PlanningSceneInterface planning_scene_interface;
+    // Define PlanningSceneInterface object to add and remove collision objects
+    moveit::planning_interface::PlanningSceneInterface planning_scene_interface;
 
-  /*
-   * Functions for gripper actuation
-   * close_gripper = 0; open gripper
-   *                 = 1; close gripper
-   */
-  bool OperateGripper(const bool &close_gripper);
-  bool OpenGripper();
-  bool CloseGripper();
+    /*
+    * Functions for gripper actuation
+    * close_gripper = 0; open gripper
+    *                 = 1; close gripper
+    */
+    bool OperateGripper(const bool &close_gripper);
+    bool OpenGripper();
+    bool CloseGripper();
 
-  bool SetupCollisionObject(const std::string &object_id,
-                            const std::string &mesh_path,
-                            const geometry_msgs::Pose &object_pose,
-                            moveit_msgs::CollisionObject &collision_object);
+    bool SetupCollisionObject( const std::string &object_id,
+                               const std::string &mesh_path,
+                               const geometry_msgs::Pose &object_pose,
+                               moveit_msgs::CollisionObject &collision_object );
 };
 
 #endif  // KUKA_ARM_TRAJECTORY_SAMPLER_H
