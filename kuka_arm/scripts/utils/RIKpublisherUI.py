@@ -71,7 +71,7 @@ class RIKpublisherUI( QWidget ) :
         super( RIKpublisherUI, self ).__init__()
 
         # Publisher for the slider valuess
-        self.m_singlePosePublisher = rospy.Publisher( "IK_pose_reference", Pose, queue_size = 10 )
+        self.m_singlePosePublisher = rospy.Publisher( "/IK_pose_reference", Pose, queue_size = 10 )
         # Publisher for the reference trajectory
         self.m_trajectoryPublisher = rospy.Publisher( "/IK_trajectory_reference", PoseArray, queue_size = 10 )
 

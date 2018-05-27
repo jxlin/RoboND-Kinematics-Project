@@ -8,7 +8,7 @@ import tf
 from kuka_arm.srv import *
 # Messages definitions
 from sensor_msgs.msg import JointState
-from geometry_msgs.msg import Pose
+from geometry_msgs.msg import Pose, PoseArray
 from tf2_msgs.msg import TFMessage
 # helper libraries
 from mpmath import * # for arbitraty floating point precision operations
@@ -17,8 +17,15 @@ from sympy import * # for symbolic operations
 # R-DH library
 from dhlibrary.RDHmodelKukaKR210 import *
 
+IK_MODE_IDLE        = 0
+IK_MODE_SINGLE_POSE = 1
+IK_MODE_TRAJECTORY  = 2
 
+class TrajectoryPose:
 
+    def __init__( self ) :
+        self.position = np.zeros( ( 3, 1 ) )
+        self.orientation = np.zeros( ( 3, 1 ) )
 
 class IK_tester :
 
@@ -31,9 +38,13 @@ class IK_tester :
         self.m_model = RDHmodelKukaKR210()
 
         # Subscribe to the IK_pose_reference topic to get a pose each time
-
+        self.m_subsIKreferenceSinglePose = rospy.Subscriber( '/IK_pose_reference',
+                                                             Pose,
+                                                             self.onSinglePoseMsgCallback )
         # Subscribe to the IK_trajectory_reference topic to get a full trajectory
-
+        self.m_subsIKreferenceTrajectory = rospy.Subscriber( '/IK_trajectory_reference',
+                                                             PoseArray,
+                                                             self.onTrajectoryMsgCallback )
         # Subscribe to the tf topic, to compare results
         self.m_subsTf = rospy.Subscriber( '/tf',
                                           TFMessage,
@@ -44,7 +55,7 @@ class IK_tester :
                                                 self.onTFStaticMsgCallback )
 
         # Publish the final pose and compare it with a plot
-        self.m_pubPoseIK      = rospy.Publisher( '/EE_pose_IK', Pose, queue_size = 10 )
+        self.m_pubPoseRVIZ    = rospy.Publisher( '/EE_pose_RVIZ', Pose, queue_size = 10 )
         self.m_pubPoseRequest = rospy.Publisher( '/EE_pose_Request', Pose, queue_size = 10 )
 
         # joint angles
@@ -58,71 +69,67 @@ class IK_tester :
         self.m_rvizTransforms = [ None ] * 7
         self.m_modelTransforms = [ None ] * 7
 
+        # To check if should hold until a trajectory has finished
+        self.m_ikExecutionMode = IK_MODE_IDLE
+
+        # Trajectory execution info
+        self.m_tBef = rospy.get_time()
+        self.m_tNow = rospy.get_time()
+        self.m_tDelta = 0.0
+        self.m_timer = 0.0
+        self.m_trajectory = None
+        self.m_currentTrajectoryPoseIndx = -1
+
         # Create some other helpful objects
         self.m_rate = rospy.Rate( 10 )
 
-    def computeJointsFromEEpose( self ) :
-        # Apply forward kinematics
-        self.m_model.inverse( self.m_refPos, self.m_refRpy )
-        # update the model
-        self.m_model.updateModel()
+    def onSinglePoseMsgCallback( self, poseMsg ) :
 
-    def publishPoseComparison( self ) :
+        if self.m_ikExecutionMode == IK_MODE_IDLE :
+
+            self.m_refPos[0,0] = poseMsg.position.x
+            self.m_refPos[1,0] = poseMsg.position.y
+            self.m_refPos[2,0] = poseMsg.position.z
+
+            self.m_refQuat[0,0] = poseMsg.orientation.x
+            self.m_refQuat[1,0] = poseMsg.orientation.y
+            self.m_refQuat[2,0] = poseMsg.orientation.z
+            self.m_refQuat[3,0] = poseMsg.orientation.w
+
+            _rpy = tf.transformations.euler_from_quaternion( [ self.m_refQuat[0,0], self.m_refQuat[1,0],
+                                                               self.m_refQuat[2,0], self.m_refQuat[3,0] ] )
+            self.m_refRpy[0,0] = _rpy[0]
+            self.m_refRpy[1,0] = _rpy[1]
+            self.m_refRpy[2,0] = _rpy[2]
+
+            self.m_ikExecutionMode = IK_MODE_SINGLE_POSE
+
+    def onTrajectoryMsgCallback( self, poseArrayMsg ) :
         
-        if self.m_rvizTransforms[-1] is None :
-            # Go back till we have all the rviz transforms that we need
-            return
+        if self.m_ikExecutionMode == IK_MODE_IDLE :
 
-        # Build pose of End Effector from our dh-model
-        _positionDH = tf.transformations.translation_from_matrix( self.m_modelTransforms[-1] )
-        _orientationDH = tf.transformations.quaternion_from_matrix( self.m_modelTransforms[-1] )
+            self.m_timer = 0.0
+            self.m_trajectory = []
 
-        _poseDH = Pose()
-        _poseDH.position.x = _positionDH[0]
-        _poseDH.position.y = _positionDH[1]
-        _poseDH.position.z = _positionDH[2]
-        _poseDH.orientation.x = _orientationDH[0]
-        _poseDH.orientation.y = _orientationDH[1]
-        _poseDH.orientation.z = _orientationDH[2]
-        _poseDH.orientation.w = _orientationDH[3]
+            for i in range( len( poseArrayMsg.poses ) ) :
+                _pose = poseArrayMsg.poses[i]
 
-        # _poseDH.position.x = self.m_refPos[0,0]
-        # _poseDH.position.y = self.m_refPos[1,0]
-        # _poseDH.position.z = self.m_refPos[2,0]
-        # _poseDH.orientation.x = self.m_refQuat[0]
-        # _poseDH.orientation.y = self.m_refQuat[1]
-        # _poseDH.orientation.z = self.m_refQuat[2]
-        # _poseDH.orientation.w = self.m_refQuat[3]
+                _tPose = TrajectoryPose()
+                
+                _tPose.position[0,0] = _pose.position.x
+                _tPose.position[1,0] = _pose.position.y
+                _tPose.position[2,0] = _pose.position.z
 
-        # Get pose of End Effector from rviz-transforms
-        _positionRVIZ = tf.transformations.translation_from_matrix( self.m_rvizTransforms[-1] )
-        _orientationRVIZ = tf.transformations.quaternion_from_matrix( self.m_rvizTransforms[-1] )
+                _rpy = tf.transformations.euler_from_quaternion( [ _pose.orientation.x, _pose.orientation.y,
+                                                                   _pose.orientation.z, _pose.orientation.w ] )
 
-        _poseRVIZ = Pose()
-        _poseRVIZ.position.x = _positionRVIZ[0]
-        _poseRVIZ.position.y = _positionRVIZ[1]
-        _poseRVIZ.position.z = _positionRVIZ[2]
-        _poseRVIZ.orientation.x = _orientationRVIZ[0]
-        _poseRVIZ.orientation.y = _orientationRVIZ[1]
-        _poseRVIZ.orientation.z = _orientationRVIZ[2]
-        _poseRVIZ.orientation.w = _orientationRVIZ[3]
+                _tPose.orientation[0,0] = _rpy[0]
+                _tPose.orientation[1,0] = _rpy[1]
+                _tPose.orientation[2,0] = _rpy[2]
 
-        self.m_pubPoseIK.publish( _poseDH )
-        self.m_pubPoseRequest.publish( _poseRVIZ )
+                self.m_trajectory.append( _tPose )
 
-    def run( self ) :
-
-        while not rospy.is_shutdown() :
-
-            self.computeJointsFromEEpose()
-            self.compareTransforms()
-            self.publishPose()
-
-            self.m_rate.sleep()
-
-    def onJointMsgCallback( self, jointMsg ) :
-        # Collect joint angles
-        self.m_jointAngles = [ jointMsg.position[i] for i in range( 2, len( jointMsg.position ) ) ]
+            self.m_ikExecutionMode = IK_MODE_TRAJECTORY
 
     def onTFMsgCallback( self, tfMsg ) :
         # Collect transforms for each link ( non EE transform )
@@ -155,6 +162,106 @@ class IK_tester :
         
         # Compute gripper link offset transform
         self.m_rvizEEoffset = np.dot( _tfTrans, _tfRot )
+
+    def run( self ) :
+
+        while not rospy.is_shutdown() :
+
+            self.m_tNow = rospy.get_time()
+            self.m_tDelta = self.m_tNow - self.m_tBef
+            self.m_tBef = self.m_tNow
+
+            self.m_timer += self.m_tDelta
+
+            # Check mode and act accordingly
+            if self.m_ikExecutionMode == IK_MODE_SINGLE_POSE :
+                self._executionModeSingle()
+            elif self.m_ikExecutionMode == IK_MODE_TRAJECTORY :
+                self._executionModeTrajectory()
+
+            # Publish pose comparisons for plotting
+            self.publishPoseComparison()
+
+            self.m_rate.sleep()
+
+    def _executionModeSingle( self ) :
+        # Apply inverse kinematics
+        self.m_jointAngles = self.m_model.inverse( self.m_refPos, self.m_refRpy )
+        # update the model
+        self.m_model.updateModel()
+        # set mode back to idle
+        self.m_ikExecutionMode = IK_MODE_IDLE
+
+    def _executionModeTrajectory( self ) :
+        _poseRef = self._getPose()
+        
+        if _poseRef is None :
+            # Have finished trajectory
+            self.m_ikExecutionMode = IK_MODE_IDLE
+            return
+
+        self.m_refPos = _poseRef.position
+        self.m_refRpy = _poseRef.orientation
+
+        _quat = tf.transformations.quaternion_from_euler( [ self.m_refRpy[0,0],
+                                                            self.m_refRpy[1,0],
+                                                            self.m_refRpy[2,0] ] )
+        self.m_refQuat[0,0] = _quat[0]
+        self.m_refQuat[1,0] = _quat[1]
+        self.m_refQuat[2,0] = _quat[2]
+        self.m_refQuat[3,0] = _quat[3]
+
+        self.m_jointAngles = self.m_model.inverse( self.m_refPos, self.m_refRpy )
+        self.m_model.updateModel()
+
+    def _getPose( self ) :
+
+        if self.m_currentTrajectoryPoseIndx == -1 :
+            self.m_currentTrajectoryPoseIndx = 0
+
+        elif self.m_timer > 0.2 :
+            self.m_timer = 0
+            if self.m_currentTrajectoryPoseIndx >= len( self.m_trajectory ) :
+                self.m_currentTrajectoryPoseIndx = -1
+                return None
+            else :
+                self.m_currentTrajectoryPoseIndx += 1
+
+        return self.m_trajectory[ self.m_currentTrajectoryPoseIndx ]
+        
+
+    def publishPoseComparison( self ) :
+        
+        if self.m_rvizTransforms[-1] is None :
+            # Go back till we have all the rviz transforms that we need
+            return
+
+        # Build pose of End Effector from requested reference
+        _poseRequest = Pose()
+        _poseRequest.position.x = self.m_refPos[0,0]
+        _poseRequest.position.y = self.m_refPos[1,0]
+        _poseRequest.position.z = self.m_refPos[2,0]
+
+        _poseRequest.orientation.x = self.m_refQuat[0,0]
+        _poseRequest.orientation.y = self.m_refQuat[1,0]
+        _poseRequest.orientation.z = self.m_refQuat[2,0]
+        _poseRequest.orientation.w = self.m_refQuat[3,0]
+
+        # Get pose of End Effector from rviz-transforms
+        _positionRVIZ = tf.transformations.translation_from_matrix( self.m_rvizTransforms[-1] )
+        _orientationRVIZ = tf.transformations.quaternion_from_matrix( self.m_rvizTransforms[-1] )
+
+        _poseRVIZ = Pose()
+        _poseRVIZ.position.x = _positionRVIZ[0]
+        _poseRVIZ.position.y = _positionRVIZ[1]
+        _poseRVIZ.position.z = _positionRVIZ[2]
+        _poseRVIZ.orientation.x = _orientationRVIZ[0]
+        _poseRVIZ.orientation.y = _orientationRVIZ[1]
+        _poseRVIZ.orientation.z = _orientationRVIZ[2]
+        _poseRVIZ.orientation.w = _orientationRVIZ[3]
+
+        self.m_pubPoseRVIZ.publish( _poseRVIZ )
+        self.m_pubPoseRequest.publish( _poseRequest )
 
 if __name__ == '__main__' :
 

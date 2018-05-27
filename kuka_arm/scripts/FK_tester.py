@@ -96,7 +96,7 @@ class FK_tester :
         # TODO: Implement comparison
         pass
 
-    def publishPose( self ) :
+    def publishPoseComparison( self ) :
         
         if self.m_rvizTransforms[-1] is None :
             # Go back till we have all the rviz transforms that we need
@@ -145,7 +145,7 @@ class FK_tester :
 
             self.computeEEpose()
             self.compareTransforms()
-            self.publishPose()
+            self.publishPoseComparison()
 
             self.m_rate.sleep()
 
