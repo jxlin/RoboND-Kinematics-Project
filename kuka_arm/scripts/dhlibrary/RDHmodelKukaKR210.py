@@ -74,6 +74,13 @@ class RDHmodelKukaKR210( RDHmodel ) :
         _a3 = self.m_dhentries[3].getDHparamValue( RDHparams.a_i_1 )
         _d4 = self.m_dhentries[3].getDHparamValue( RDHparams.d_i )
 
+        # # DEBUG: Dump info for debug
+        # print '_d1: ', _d1
+        # print '_a1: ', _a1
+        # print '_a2: ', _a2
+        # print '_a3: ', _a3
+        # print '_d4: ', _d4
+
         # Copy the EEffector position
         self.m_ikEEPosRef = xyz.copy()
         # Compute rotation matrix of the end effector
@@ -107,14 +114,33 @@ class RDHmodelKukaKR210( RDHmodel ) :
         _phi5 = np.arccos( ( _l1 * _l1 + _l3 * _l3 - _l2 * _l2 ) / 
                            ( 2 * _l1 * _l3 ) )
 
+        # # DEBUG: Dump info for debug
+        # print '_q1: ', _q1
+        # print '_phi1: ', _phi1
+        # print '_phi2: ', _phi2
+        # print '_phi3: ', _phi3
+        # print '_phi4: ', _phi4
+        # print '_phi4: ', _phi4
+        # print '_l1: ', _l1
+        # print '_l2: ', _l2
+        # print '_l3: ', _l3
+        # print '_phi5: ', _phi5
+
         # Compute intermediate variables for cosine law application in ...
         # triangle 2-3-Wc
         _l4 = np.sqrt( _d4 * _d4 + _a3 * _a3 )
+
+        # # DEBUG: Dump info for debug
+        # print '_l4: ', _l4
+        # print '_vwarning1: ', ( ( _l3 * _l3 + _a2 * _a2 - _l4 * _l4  ) / ( 2 * _l3 * _a2 ) )
+        # print '_vwarning2: ', ( ( _a2 * _a2 + _l4 * _l4 - _l3 * _l3 ) / ( 2 * _a2 * _l4 ) )
+
         _phi8 = np.arctan2( np.abs( _a3 ), _d4 )
         _phi6 = np.arccos( ( _l3 * _l3 + _a2 * _a2 - _l4 * _l4  ) / 
                            ( 2 * _l3 * _a2 ) )
         _phi7 = np.arccos( ( _a2 * _a2 + _l4 * _l4 - _l3 * _l3 ) /
                            ( 2 * _a2 * _l4 ) )
+
 
         # Compute q2 and q3 with some angles' sums
         _q2 = 1.5 * np.pi - _phi4 - _phi5 - _phi6
@@ -164,9 +190,10 @@ class RDHmodelKukaKR210( RDHmodel ) :
             for i in range( self.getNumJoints() ) :
 
                 if ( np.isnan( _joints[i] ) ) :
-                    return []
+                    print 'warning, non reachable'
+                    return None
 
-                self.m_dhTable.setJointValue( _joints[i], i )
+                self.setJointValue( i, _joints[i] )
 
             self.updateModel()
 

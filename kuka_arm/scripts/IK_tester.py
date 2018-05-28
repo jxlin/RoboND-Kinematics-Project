@@ -57,6 +57,8 @@ class IK_tester :
         # Publish the final pose and compare it with a plot
         self.m_pubPoseRVIZ    = rospy.Publisher( '/EE_pose_RVIZ', Pose, queue_size = 10 )
         self.m_pubPoseRequest = rospy.Publisher( '/EE_pose_Request', Pose, queue_size = 10 )
+        # Publish the joint angles for robot_state_publisher to use them
+        self.m_pubJoints = rospy.Publisher( '/joint_states', JointState, queue_size = 10 )
 
         # joint angles
         self.m_jointAngles = [ 0 ] * 6
@@ -64,10 +66,10 @@ class IK_tester :
         self.m_refPos  = np.zeros( ( 3, 1 ) )
         self.m_refRpy  = np.zeros( ( 3, 1 ) )
         self.m_refQuat = np.zeros( ( 4, 1 ) )
-        # transform for each link
+        # transform for each link - just look at the rviz transforms, not our ...
+        # model transforms for comparison
         self.m_rvizEEoffset = None
         self.m_rvizTransforms = [ None ] * 7
-        self.m_modelTransforms = [ None ] * 7
 
         # To check if should hold until a trajectory has finished
         self.m_ikExecutionMode = IK_MODE_IDLE
@@ -110,6 +112,7 @@ class IK_tester :
 
             self.m_timer = 0.0
             self.m_trajectory = []
+            self.m_currentTrajectoryPoseIndx = -1
 
             for i in range( len( poseArrayMsg.poses ) ) :
                 _pose = poseArrayMsg.poses[i]
@@ -146,11 +149,9 @@ class IK_tester :
             _tf = np.dot( _tf, np.dot( _tfTrans, _tfRot ) )
 
             self.m_rvizTransforms[i] = _tf
-            self.m_modelTransforms[i] = self.m_model.getTransformInRange( 0, i )
 
         if self.m_rvizEEoffset is not None :
             self.m_rvizTransforms[6] = np.dot( self.m_rvizTransforms[5], self.m_rvizEEoffset )
-            self.m_modelTransforms[6] = self.m_model.getTotalEndEffectorTransform()
 
     def onTFStaticMsgCallback( self, tfMsg ):
         # Extract transform offset for the gripper link ( link6 to gripper_link )
@@ -179,6 +180,8 @@ class IK_tester :
             elif self.m_ikExecutionMode == IK_MODE_TRAJECTORY :
                 self._executionModeTrajectory()
 
+            # Publish joints for rviz usage
+            self.publishJoints()
             # Publish pose comparisons for plotting
             self.publishPoseComparison()
 
@@ -187,8 +190,12 @@ class IK_tester :
     def _executionModeSingle( self ) :
         # Apply inverse kinematics
         self.m_jointAngles = self.m_model.inverse( self.m_refPos, self.m_refRpy )
-        # update the model
-        self.m_model.updateModel()
+
+        # Check if the position was solvable
+        if self.m_jointAngles is not None :
+            # update the model
+            self.m_model.updateModel()
+
         # set mode back to idle
         self.m_ikExecutionMode = IK_MODE_IDLE
 
@@ -203,16 +210,20 @@ class IK_tester :
         self.m_refPos = _poseRef.position
         self.m_refRpy = _poseRef.orientation
 
-        _quat = tf.transformations.quaternion_from_euler( [ self.m_refRpy[0,0],
-                                                            self.m_refRpy[1,0],
-                                                            self.m_refRpy[2,0] ] )
+        _quat = tf.transformations.quaternion_from_euler( self.m_refRpy[0,0],
+                                                          self.m_refRpy[1,0],
+                                                          self.m_refRpy[2,0] )
         self.m_refQuat[0,0] = _quat[0]
         self.m_refQuat[1,0] = _quat[1]
         self.m_refQuat[2,0] = _quat[2]
         self.m_refQuat[3,0] = _quat[3]
 
         self.m_jointAngles = self.m_model.inverse( self.m_refPos, self.m_refRpy )
-        self.m_model.updateModel()
+
+        # Check if the position was solvable
+        if self.m_jointAngles is not None :
+            # update the model
+            self.m_model.updateModel()
 
     def _getPose( self ) :
 
@@ -221,7 +232,7 @@ class IK_tester :
 
         elif self.m_timer > 0.2 :
             self.m_timer = 0
-            if self.m_currentTrajectoryPoseIndx >= len( self.m_trajectory ) :
+            if self.m_currentTrajectoryPoseIndx >= ( len( self.m_trajectory ) - 1 ) :
                 self.m_currentTrajectoryPoseIndx = -1
                 return None
             else :
@@ -229,6 +240,28 @@ class IK_tester :
 
         return self.m_trajectory[ self.m_currentTrajectoryPoseIndx ]
         
+    def publishJoints( self ) :
+
+        # Only send if previous position was solvable
+        if self.m_jointAngles is not None :
+
+            # make JointState msg
+            _msg = JointState()
+            _msg.name = [ 'right_gripper_finger_joint',
+                          'left_gripper_finger_joint',
+                          'joint_1', 'joint_2', 'joint_3', 'joint_4', 'joint_5', 'joint_6' ]
+            _msg.position = [ 0.0, 0.0,
+                              self.m_jointAngles[0],
+                              self.m_jointAngles[1],
+                              self.m_jointAngles[2],
+                              self.m_jointAngles[3],
+                              self.m_jointAngles[4],
+                              self.m_jointAngles[5] ]
+
+            # publish this message
+            self.m_pubJoints.publish( _msg )
+
+            print 'joints OK!'
 
     def publishPoseComparison( self ) :
         
