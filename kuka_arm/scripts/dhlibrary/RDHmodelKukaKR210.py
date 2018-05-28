@@ -65,6 +65,24 @@ class RDHmodelKukaKR210( RDHmodel ) :
 
         print 'Done'
 
+    def _computeAngleCosineLaw( self, l1, l2, lx, computeId = 'none' ) :
+
+        _num = l1 ** 2 + l2 ** 2 - lx ** 2
+        _den = 2 * l1 * l2
+
+        _cosx = _num / _den
+
+        # Check if in range
+        if _cosx > 1 or _cosx < -1 :
+            print 'Warning> out of domain error computing angle by cosine law ******'
+            print '_num: ', _num
+            print '_den: ', _den
+            print '_cosx: ', _cosx
+            print 'computeId: ', computeId
+            print '*****************************************************************'
+
+        return np.arccos( _cosx )
+
     def inverse( self, xyz, rpy, applyToModel = True ) :
 
         # Extract info from dh table
@@ -73,13 +91,6 @@ class RDHmodelKukaKR210( RDHmodel ) :
         _a2 = self.m_dhentries[2].getDHparamValue( RDHparams.a_i_1 )
         _a3 = self.m_dhentries[3].getDHparamValue( RDHparams.a_i_1 )
         _d4 = self.m_dhentries[3].getDHparamValue( RDHparams.d_i )
-
-        # # DEBUG: Dump info for debug
-        # print '_d1: ', _d1
-        # print '_a1: ', _a1
-        # print '_a2: ', _a2
-        # print '_a3: ', _a3
-        # print '_d4: ', _d4
 
         # Copy the EEffector position
         self.m_ikEEPosRef = xyz.copy()
@@ -101,45 +112,31 @@ class RDHmodelKukaKR210( RDHmodel ) :
         # Compute intermediate variables from geometric relationships
         _phi1 = np.arctan2( _a1, _d1 )
         _phi2 = np.arctan2( self.m_ikWCPosRef[2,0],
-                            np.sqrt( self.m_ikWCPosRef[0,0] * self.m_ikWCPosRef[0,0] +
-                                     self.m_ikWCPosRef[1,0] * self.m_ikWCPosRef[1,0] ) )
+                            np.sqrt( self.m_ikWCPosRef[0,0] ** 2 +
+                                     self.m_ikWCPosRef[1,0] ** 2 ) )
         _phi3 = 0.5 * np.pi - _phi1 - _phi2
         _phi4 = 0.5 * np.pi - _phi1
         # Compute intermediate variables for cosine law application in ...
         # triangle 0-2-Wc
-        _l1 = np.sqrt( _d1 * _d1 + _a1 * _a1 )
+        _l1 = np.sqrt( _d1 ** 2 + _a1 ** 2 )
         _l2 = np.linalg.norm( self.m_ikWCPosRef )
 
-        _l3 = np.sqrt( _l1 * _l1 + _l2 * _l2 - 2 * _l1 * _l2 * np.cos( _phi3 ) )
-        _phi5 = np.arccos( ( _l1 * _l1 + _l3 * _l3 - _l2 * _l2 ) / 
-                           ( 2 * _l1 * _l3 ) )
-
-        # # DEBUG: Dump info for debug
-        # print '_q1: ', _q1
-        # print '_phi1: ', _phi1
-        # print '_phi2: ', _phi2
-        # print '_phi3: ', _phi3
-        # print '_phi4: ', _phi4
-        # print '_phi4: ', _phi4
-        # print '_l1: ', _l1
-        # print '_l2: ', _l2
-        # print '_l3: ', _l3
-        # print '_phi5: ', _phi5
+        _l3 = np.sqrt( _l1 ** 2 + _l2 ** 2 - 2 * _l1 * _l2 * np.cos( _phi3 ) )
+        _phi5 = self._computeAngleCosineLaw( _l1, _l3, _l2, 'phi5' )
+        # _phi5 = np.arccos( ( _l1 * _l1 + _l3 * _l3 - _l2 * _l2 ) / 
+        #                    ( 2 * _l1 * _l3 ) )
 
         # Compute intermediate variables for cosine law application in ...
         # triangle 2-3-Wc
         _l4 = np.sqrt( _d4 * _d4 + _a3 * _a3 )
 
-        # # DEBUG: Dump info for debug
-        # print '_l4: ', _l4
-        # print '_vwarning1: ', ( ( _l3 * _l3 + _a2 * _a2 - _l4 * _l4  ) / ( 2 * _l3 * _a2 ) )
-        # print '_vwarning2: ', ( ( _a2 * _a2 + _l4 * _l4 - _l3 * _l3 ) / ( 2 * _a2 * _l4 ) )
-
         _phi8 = np.arctan2( np.abs( _a3 ), _d4 )
-        _phi6 = np.arccos( ( _l3 * _l3 + _a2 * _a2 - _l4 * _l4  ) / 
-                           ( 2 * _l3 * _a2 ) )
-        _phi7 = np.arccos( ( _a2 * _a2 + _l4 * _l4 - _l3 * _l3 ) /
-                           ( 2 * _a2 * _l4 ) )
+        _phi6 = self._computeAngleCosineLaw( _l3, _a2, _l4, 'phi6' )
+        _phi7 = self._computeAngleCosineLaw( _a2, _l4, _l3, 'phi7' )
+        # _phi6 = np.arccos( ( _l3 * _l3 + _a2 * _a2 - _l4 * _l4  ) / 
+        #                    ( 2 * _l3 * _a2 ) )
+        # _phi7 = np.arccos( ( _a2 * _a2 + _l4 * _l4 - _l3 * _l3 ) /
+        #                    ( 2 * _a2 * _l4 ) )
 
 
         # Compute q2 and q3 with some angles' sums
@@ -191,6 +188,40 @@ class RDHmodelKukaKR210( RDHmodel ) :
 
                 if ( np.isnan( _joints[i] ) ) :
                     print 'warning, non reachable'
+
+                    # Print every computation for debug
+
+                    # DEBUG: Dump info for debug
+
+                    print 'xyz: ', xyz
+                    print 'rpy: ', rpy
+
+                    print '_d1: ', _d1
+                    print '_a1: ', _a1
+                    print '_a2: ', _a2
+                    print '_a3: ', _a3
+                    print '_d4: ', _d4
+
+                    print 'm_ikEEPosRef: ', self.m_ikEEPosRef
+                    print 'm_ikEErotMat: ', self.m_ikEErotMat
+                    print 'm_ikWCrotMat: ', self.m_ikWCrotMat
+                    print 'm_ikWCPosRef: ', self.m_ikWCPosRef
+
+                    print '_q1: ', _q1
+
+                    print '_l1: ', _l1
+                    print '_l2: ', _l2
+                    print '_l3: ', _l3
+                    print '_l4: ', _l4
+                    
+                    print '_phi1: ', _phi1
+                    print '_phi2: ', _phi2
+                    print '_phi3: ', _phi3
+                    print '_phi4: ', _phi4
+                    print '_phi4: ', _phi4
+                    print '_phi5: ', _phi5
+
+
                     return None
 
                 self.setJointValue( i, _joints[i] )

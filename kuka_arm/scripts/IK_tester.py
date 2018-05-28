@@ -21,6 +21,10 @@ IK_MODE_IDLE        = 0
 IK_MODE_SINGLE_POSE = 1
 IK_MODE_TRAJECTORY  = 2
 
+# Just in cases where some stuff went wrong, and ...
+# need to check every dh - computation ( inverse, most of the time )
+LOG_EVERYTHING_FUUUU = False
+
 class TrajectoryPose:
 
     def __init__( self ) :
@@ -38,9 +42,9 @@ class IK_tester :
         self.m_model = RDHmodelKukaKR210()
 
         # Subscribe to the IK_pose_reference topic to get a pose each time
-        self.m_subsIKreferenceSinglePose = rospy.Subscriber( '/IK_pose_reference',
-                                                             Pose,
-                                                             self.onSinglePoseMsgCallback )
+        # self.m_subsIKreferenceSinglePose = rospy.Subscriber( '/IK_pose_reference',
+        #                                                      Pose,
+        #                                                      self.onSinglePoseMsgCallback )
         # Subscribe to the IK_trajectory_reference topic to get a full trajectory
         self.m_subsIKreferenceTrajectory = rospy.Subscriber( '/IK_trajectory_reference',
                                                              PoseArray,
@@ -195,6 +199,9 @@ class IK_tester :
         if self.m_jointAngles is not None :
             # update the model
             self.m_model.updateModel()
+        # else :
+        #     # Log the error
+        #     self.m_model._logToFile( [], self.m_refPos, self.m_refRpy, 'IK error' )
 
         # set mode back to idle
         self.m_ikExecutionMode = IK_MODE_IDLE
@@ -224,19 +231,30 @@ class IK_tester :
         if self.m_jointAngles is not None :
             # update the model
             self.m_model.updateModel()
+            # Log all the path computations, just in case
+            if LOG_EVERYTHING_FUUUU :
+                self.m_model._logToFile( self.m_jointAngles,
+                                         self.m_refPos, self.m_refRpy,
+                                         'IK Ok!!!' )
+        else :
+            # Log the error
+            self.m_model._logToFile( [], self.m_refPos, self.m_refRpy, 'IK error' )
 
     def _getPose( self ) :
 
         if self.m_currentTrajectoryPoseIndx == -1 :
             self.m_currentTrajectoryPoseIndx = 0
+            print 'PoseIndx: ', 0
 
         elif self.m_timer > 0.2 :
             self.m_timer = 0
             if self.m_currentTrajectoryPoseIndx >= ( len( self.m_trajectory ) - 1 ) :
                 self.m_currentTrajectoryPoseIndx = -1
+                print 'DONE WITH TRAJECTORY!'
                 return None
             else :
                 self.m_currentTrajectoryPoseIndx += 1
+                print 'PoseIndx: ', self.m_currentTrajectoryPoseIndx
 
         return self.m_trajectory[ self.m_currentTrajectoryPoseIndx ]
         
@@ -261,6 +279,7 @@ class IK_tester :
             # publish this message
             self.m_pubJoints.publish( _msg )
 
+            # print 'joints OK!> ', self.m_jointAngles
             print 'joints OK!'
 
     def publishPoseComparison( self ) :

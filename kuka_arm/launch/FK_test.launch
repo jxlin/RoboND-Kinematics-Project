@@ -10,6 +10,11 @@
   <!--Publish robot state to TF-->
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/>
 
+  <!--Execute our testing node-->
+  <node name="FK_tester" pkg="kuka_arm" type="FK_tester.py" />
+  <!--Call plotting tool to visualize comparisons-->
+  <node name="rqt_plot" pkg="rqt_plot" type="rqt_plot" />
+
   <!--rviz-->
   <node name="$(anon rviz)" pkg="rviz" type="rviz" respawn="false"
     output="screen" args="-d $(find kuka_arm)/config/forward_kinematics.rviz"/>

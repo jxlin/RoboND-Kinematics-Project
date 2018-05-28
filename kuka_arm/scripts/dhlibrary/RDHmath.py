@@ -1,6 +1,8 @@
 
 import numpy as np
 
+# For euler angles, we are using Tai-Bryan xyz extrinsic convention
+
 def quat2numpy( quat ) :
     _res = np.zeros( 4 )
     _res[0] = quat.x
@@ -30,7 +32,7 @@ def rotationMatrix2euler( mat ) :
     _r33 = mat[2,2]
 
     _res[0,0] = np.arctan2( _r32, _r33 )
-    _res[1,0] = np.arctan2( -_r32, np.sqrt( _r11 ** 2 + _r21 ** 2 ) )
+    _res[1,0] = np.arctan2( -_r31, np.sqrt( _r11 ** 2 + _r21 ** 2 ) )
     _res[2,0] = np.arctan2( _r21, _r11 )
 
     return _res
@@ -40,14 +42,14 @@ def euler2rotationMatrix( rpy ) :
 
     _res = np.eye( 4 )
 
-    _c1 = np.cos( rpy[0,0] )
-    _s1 = np.sin( rpy[0,0] )
+    _c1 = np.cos( rpy[2,0] )
+    _s1 = np.sin( rpy[2,0] )
 
     _c2 = np.cos( rpy[1,0] )
     _s2 = np.sin( rpy[1,0] )
 
-    _c3 = np.cos( rpy[2,0] )
-    _s3 = np.sin( rpy[2,0] )
+    _c3 = np.cos( rpy[0,0] )
+    _s3 = np.sin( rpy[0,0] )
 
     _res[0,0] = _c1 * _c2;
     _res[1,0] = _c2 * _s1;

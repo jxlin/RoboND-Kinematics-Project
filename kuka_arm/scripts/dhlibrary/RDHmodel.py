@@ -9,7 +9,7 @@ import numpy as np
 from RDHentry import *
 from RDHmath import *
 
-
+LOG_TO_FILE = True
 
 class RDHmodel( object ) :
 
@@ -28,6 +28,9 @@ class RDHmodel( object ) :
         self.m_endEffectorTotalTransform = np.eye( 4 )
         self.m_endEffectorXYZ = np.zeros( ( 3, 1 ) )
         self.m_endEffectorRPY = np.zeros( ( 3, 1 ) )
+
+        # Logger for further checks
+        self.m_fLogHandle = None
 
         self._buildModel()
 
@@ -141,3 +144,44 @@ class RDHmodel( object ) :
             return False
 
         return True
+
+    # Logs a single computation step to the log file
+    def _logToFile( self, joints, xyz, rpy, infoMsg = 'Ok' ) :
+        if not LOG_TO_FILE :
+            return
+
+        self.m_fLogHandle = open( 'f_logs_model.txt', 'a' )
+
+        ## MAKE SOME SEXY LOGS :3
+
+        self.m_fLogHandle.write( '*************************\n' )
+
+        # Log joints
+        for i in range( len( joints ) ) :
+            _msgJoint = 'q%(jointIndx)i> %(jointValue)f \n' % { 'jointIndx' : ( i + 1 ),
+                                                                'jointValue' : joints[i] }
+            self.m_fLogHandle.write( _msgJoint )
+
+        # Log position
+        _msgPos = 'x> %(posx)f - y> %(posy)f - z> %(posz)f \n' % { 'posx' : xyz[0,0],
+                                                                   'posy' : xyz[1,0],
+                                                                   'posz' : xyz[2,0] }
+        self.m_fLogHandle.write( _msgPos )
+
+        # Log rotation
+        _msgRot = 'r> %(roll)f - p> %(pitch)f - y> %(yaw)f \n' % { 'roll' : rpy[0,0],
+                                                                   'pitch' : rpy[1,0],
+                                                                   'yaw' : rpy[2,0] }
+        self.m_fLogHandle.write( _msgRot )
+
+        # Log extra info
+        _msgInfo = 'info> %(msg)s \n' % { 'msg' : infoMsg }
+        self.m_fLogHandle.write( _msgInfo )
+
+        self.m_fLogHandle.write( '*************************\n' )
+
+        # print 'looooooogggg'
+
+        self.m_fLogHandle.close()
+
+        

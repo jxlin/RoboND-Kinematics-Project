@@ -115,6 +115,7 @@ class FK_tester :
         _poseDH.orientation.z = _orientationDH[2]
         _poseDH.orientation.w = _orientationDH[3]
 
+        # # Could send these, but better check the model transforms just in case
         # _poseDH.position.x = self.m_gpos[0,0]
         # _poseDH.position.y = self.m_gpos[1,0]
         # _poseDH.position.z = self.m_gpos[2,0]
@@ -157,6 +158,9 @@ class FK_tester :
         # Collect transforms for each link ( non EE transform )
         _transforms = tfMsg.transforms
         _tf = np.eye( 4 )
+
+        # Update calculations just in case
+        self.m_model.updateModel()
 
         # Get only the link-link transforms, not the fingers-link
         for i in range( 6 ) :
