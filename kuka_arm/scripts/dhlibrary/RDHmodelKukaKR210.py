@@ -140,7 +140,11 @@ class RDHmodelKukaKR210( RDHmodel ) :
 
 
         # Compute q2 and q3 with some angles' sums
-        _q2 = 1.5 * np.pi - _phi4 - _phi5 - _phi6
+        if _phi3 >= 0 :
+            _q2 = 1.5 * np.pi - _phi4 - _phi5 - _phi6
+        else :
+            _q2 = _phi5 - _phi6 - _phi4 - 0.5 * np.pi
+        # _q2 = 1.5 * np.pi - _phi4 - _phi5 - _phi6
         _q3 = 0.5 * np.pi - _phi7 - _phi8
 
         #### Compute q4, q5 and q6 from the total rotation matrix

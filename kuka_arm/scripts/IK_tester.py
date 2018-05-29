@@ -42,9 +42,9 @@ class IK_tester :
         self.m_model = RDHmodelKukaKR210()
 
         # Subscribe to the IK_pose_reference topic to get a pose each time
-        # self.m_subsIKreferenceSinglePose = rospy.Subscriber( '/IK_pose_reference',
-        #                                                      Pose,
-        #                                                      self.onSinglePoseMsgCallback )
+        self.m_subsIKreferenceSinglePose = rospy.Subscriber( '/IK_pose_reference',
+                                                             Pose,
+                                                             self.onSinglePoseMsgCallback )
         # Subscribe to the IK_trajectory_reference topic to get a full trajectory
         self.m_subsIKreferenceTrajectory = rospy.Subscriber( '/IK_trajectory_reference',
                                                              PoseArray,
@@ -265,6 +265,7 @@ class IK_tester :
 
             # make JointState msg
             _msg = JointState()
+            _msg.header.stamp = rospy.Time.now()
             _msg.name = [ 'right_gripper_finger_joint',
                           'left_gripper_finger_joint',
                           'joint_1', 'joint_2', 'joint_3', 'joint_4', 'joint_5', 'joint_6' ]

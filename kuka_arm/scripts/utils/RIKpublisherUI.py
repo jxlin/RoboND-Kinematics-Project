@@ -14,7 +14,9 @@ from python_qt_binding.QtWidgets import *
 from python_qt_binding.QtGui import *
 from python_qt_binding.QtCore import *
 
+# some helper libraries
 import tf
+import numpy as np
 
 # messages definitions
 from geometry_msgs.msg import Pose, PoseArray
@@ -93,12 +95,12 @@ class RIKpublisherUI( QWidget ) :
         self.m_chbox_mode = QCheckBox( 'Use trajectory' )
         _ui_vbox.addWidget( self.m_chbox_mode )
 
-        self.m_sld_x = self._buildSlider( -3.1, 3.1, 'x' )
-        self.m_sld_y = self._buildSlider( -3.1, 3.1, 'y' )
-        self.m_sld_z = self._buildSlider( -2.0, 3.5, 'z' )
-        self.m_sld_roll  = self._buildSlider( -180, 180, 'roll' )
-        self.m_sld_pitch = self._buildSlider( -180, 180, 'pitch' )
-        self.m_sld_yaw   = self._buildSlider( -180, 180, 'yaw' )
+        self.m_sld_x = self._buildSlider( -3.1, 3.1, 1.85, 'x' )
+        self.m_sld_y = self._buildSlider( -3.1, 3.1, 0.0, 'y' )
+        self.m_sld_z = self._buildSlider( -2.0, 3.5, 1.95, 'z' )
+        self.m_sld_roll  = self._buildSlider( -180, 180, 0.0, 'roll' )
+        self.m_sld_pitch = self._buildSlider( -180, 180, 0.0, 'pitch' )
+        self.m_sld_yaw   = self._buildSlider( -180, 180, 0.0, 'yaw' )
 
         _ui_vbox.addLayout( self.m_sld_x.getLayout() )
         _ui_vbox.addLayout( self.m_sld_y.getLayout() )
@@ -121,7 +123,7 @@ class RIKpublisherUI( QWidget ) :
         # clear time and start everything
         self.m_workerRos.start()
 
-    def _buildSlider( self, rmin, rmax, name ) :
+    def _buildSlider( self, rmin, rmax, value, name ) :
         _vbox = QVBoxLayout()
         _hbox = QHBoxLayout()
 
@@ -200,9 +202,9 @@ class RIKpublisherUI( QWidget ) :
         _pose.position.y = self.m_sld_y.getValue()
         _pose.position.z = self.m_sld_z.getValue()
 
-        _quat = tf.transformations.quaternion_from_euler( self.m_sld_roll.getValue(),
-                                                          self.m_sld_pitch.getValue(),
-                                                          self.m_sld_yaw.getValue() )
+        _quat = tf.transformations.quaternion_from_euler( self.m_sld_roll.getValue() * np.pi / 180.0,
+                                                          self.m_sld_pitch.getValue() * np.pi / 180.0,
+                                                          self.m_sld_yaw.getValue() * np.pi / 180.0 )
 
         _pose.orientation.x = _quat[0]
         _pose.orientation.y = _quat[1]

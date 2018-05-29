@@ -2,6 +2,10 @@ from sympy import *
 from time import time
 from mpmath import radians
 import tf
+import numpy as np
+
+# R-DH library
+from dhlibrary_debug.RDHmodelKukaKR210 import *
 
 '''
 Format of test case is [ [[EE position],[EE orientation as quaternions]],[WC location],[joint angles]]
@@ -25,6 +29,7 @@ test_cases = {1:[[[2.16135,-1.42635,1.55109],
               4:[],
               5:[]}
 
+g_kuka_dh_model = None
 
 def test_code(test_case):
     ## Set up code
@@ -64,12 +69,42 @@ def test_code(test_case):
 
     ## Insert IK code here!
     
-    theta1 = 0
-    theta2 = 0
-    theta3 = 0
-    theta4 = 0
-    theta5 = 0
-    theta6 = 0
+    _xyz = np.zeros( ( 3, 1 ) )
+    _xyz[0,0] = position.x
+    _xyz[1,0] = position.y
+    _xyz[2,0] = position.z
+
+    _euler = tf.transformations.euler_from_quaternion( [ orientation.x,
+                                                         orientation.y,
+                                                         orientation.z,
+                                                         orientation.w ] )
+    _rpy = np.zeros( ( 3, 1 ) )
+    _rpy[0,0] = _euler[0]
+    _rpy[1,0] = _euler[1]
+    _rpy[2,0] = _euler[2]
+
+    _joints = g_kuka_dh_model.inverse( _xyz, _rpy )
+
+    if _joints is not None :
+
+        theta1 = _joints[0]
+        theta2 = _joints[1]
+        theta3 = _joints[2]
+        theta4 = _joints[3]
+        theta5 = _joints[4]
+        theta6 = _joints[5]
+
+    else :
+
+        rospy.ERROR( 'issue running test case - non solvable :(' )
+        print 'waaaaaa!!!!'
+
+        theta1 = 0
+        theta2 = 0
+        theta3 = 0
+        theta4 = 0
+        theta5 = 0
+        theta6 = 0
 
     ## 
     ########################################################################################
@@ -80,12 +115,15 @@ def test_code(test_case):
 
     ## (OPTIONAL) YOUR CODE HERE!
 
+    _wc = g_kuka_dh_model.getLastFrameXYZ()
+    _ee = g_kuka_dh_model.getEndEffectorXYZ()
+
     ## End your code input for forward kinematics here!
     ########################################################################################
 
     ## For error analysis please set the following variables of your WC location and EE location in the format of [x,y,z]
-    your_wc = [1,1,1] # <--- Load your calculated WC values in this array
-    your_ee = [1,1,1] # <--- Load your calculated end effector value from your forward kinematics
+    your_wc = [ _wc[0,0], _wc[1,0], _wc[2,0] ] # <--- Load your calculated WC values in this array
+    your_ee = [ _ee[0,0], _ee[1,0], _ee[2,0] ] # <--- Load your calculated end effector value from your forward kinematics
     ########################################################################################
 
     ## Error analysis
@@ -135,7 +173,9 @@ def test_code(test_case):
 
 
 if __name__ == "__main__":
+    g_kuka_dh_model = RDHmodelKukaKR210()
+
     # Change test case number for different scenarios
-    test_case_number = 1
+    test_case_number = 2
 
     test_code(test_cases[test_case_number])
