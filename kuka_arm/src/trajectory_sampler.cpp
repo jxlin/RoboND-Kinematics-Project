@@ -169,6 +169,8 @@ TrajectorySampler::TrajectorySampler(ros::NodeHandle nh)
         // visual_tools.publishText(instr_pose, "Press 'Next' to continue...",
         // rviz_visual_tools::GREEN, rviz_visual_tools::XXXLARGE);
 
+        ROS_INFO( "State> start cycle" );
+
         // Publish messages to rviz
         visual_tools.trigger();
         visual_tools.prompt("next step");
@@ -218,9 +220,13 @@ TrajectorySampler::TrajectorySampler(ros::NodeHandle nh)
         // define plan object which will hold the planned trajectory
         moveit::planning_interface::MoveGroupInterface::Plan my_plan;
 
+        ROS_INFO( "State> planning" );
+
         bool success = move_group.plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS;
         ROS_INFO( "Visualizing plan to target: %s",
                   success ? "SUCCEEDED" : "FAILED" );
+
+        ROS_INFO( "State> displaying path to target" );
 
         // Visualize the plan
         visual_tools.publishAxisLabeled(target_pose, "target_pose");
