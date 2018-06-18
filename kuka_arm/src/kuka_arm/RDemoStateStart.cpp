@@ -5,29 +5,27 @@ namespace kuka
 {
 
 
-    RDemoStateStart::RDemoStateStart( RWorld* pWorld,
-                                      moveit_visual_tools::MoveItVisualTools* pVisTools,
-                                      moveit::planning_interface::MoveGroupInterface* pMoveGroup,
-                                      moveit::planning_interface::MoveGroupInterface* pEefGroup,
-                                      robot_state::JointModelGroup* pJointModelGroup,
-                                      robot_state::JointModelGroup* pGripperModelGroup )
-        : RStateInterface( pWorld, pVisTools, pMoveGroup, pEefGroup, pJointModelGroup, pGripperModelGroup )
+    RDemoStateStart::RDemoStateStart( RWorld* pWorld )
+        : RStateInterface( pWorld )
     {
+        m_timer = 0.0;
         m_startWaitTime = 3.0;// Wait for 3 seconds
     }
 
     void RDemoStateStart::enter( int action )
     {
+        m_timer = 0;
+        m_mode = MODE_RUNNING;
+
         if ( action == RAction::INIT )
         {
             // Say hi
-            m_mVisTools->deleteAllMarkers();
-            m_mVisTools->loadRemoteControl();
-            utils::showMessage( m_mVisTools,
+            m_world->ptrVisTools()->deleteAllMarkers();
+            m_world->ptrVisTools()->loadRemoteControl();
+            utils::showMessage( m_world->ptrVisTools(),
                                 "State> Start of cycle",
                                 rviz_visual_tools::WHITE,
                                 rviz_visual_tools::XXXXLARGE );
-
 
             // Get target and release poses ...
             // from parameter server
@@ -49,13 +47,10 @@ namespace kuka
             m_world->binPose().position.z = _binZ + 1.6;
 
             // Set up move group with some initial values
-            m_moveGroup->setStartStateToCurrentState();
-            m_moveGroup->setMaxVelocityScalingFactor( 0.2 );
+            m_world->moveGroup().setStartStateToCurrentState();
+            m_world->moveGroup().setMaxVelocityScalingFactor( 0.2 );
             // Set up eef group with some initial values
-            m_eefGroup->setMaxScalingFactor( 1.0 );
-
-            m_timer = 0;
-            m_mode = MODE_RUNNING;
+            m_world->eefGroup().setMaxScalingFactor( 1.0 );
         }
     }
 

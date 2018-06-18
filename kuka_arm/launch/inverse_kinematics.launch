@@ -3,5 +3,9 @@
     <!--set demo value="false" when using IK_server-->
     <!-- <param name="demo" value="true" type="bool"/> -->
     <param name="demo" value="false" type="bool"/>
+    <!--set waitForUser value="false" to allow the demo to run without user intervention-->
+    <param name="waitForUser" value="false" type="bool"/>
+    <!--set replan value="true" to allow replanning in case moveit couldn't find a path-->
+    <param name="replan" value="true" type="bool"/>
   </node>
 </launch>

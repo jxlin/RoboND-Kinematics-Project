@@ -57,12 +57,12 @@ namespace kuka
         else if ( m_currentState->mode() == MODE_FINISHED )
         {
             bool _ok = false;
-            std::string _transitionMsg = m_currentState->transitionMsg();
+            std::string _transitionCode = m_currentState->transitionCode();
 
             // Make the appropiate transition
             if ( m_currentState->id() == STATE_START )
             {
-                if ( _transitionMsg == RAction::MAKE_PLAN_TARGET )
+                if ( _transitionCode == RAction::MAKE_PLAN_TARGET )
                 {
                     _ok = _makeTransition( STATE_PLANNING, 
                                            RAction::MAKE_PLAN_TO_TARGET );
@@ -70,17 +70,17 @@ namespace kuka
             }
             else if ( m_currentState->id() == STATE_PLANNING )
             {
-                if ( _transitionMsg == RAction::EXECUTE_PLAN_TO_TARGET )
+                if ( _transitionCode == RAction::EXECUTE_PLAN_TO_TARGET )
                 {
                     _ok = _makeTransition( STATE_PLAN_EXECUTION, 
                                            RAction::EXECUTE_PLAN_TO_TARGET );
                 }
-                else if ( _transitionMsg == RAction::EXECUTE_PLAN_TO_RELEASE )
+                else if ( _transitionCode == RAction::EXECUTE_PLAN_TO_RELEASE )
                 {
                     _ok = _makeTransition( STATE_PLAN_EXECUTION,
                                            RAction::EXECUTE_PLAN_TO_RELEASE );
                 }
-                else if ( _transitionMsg == RAction::REPLAN )
+                else if ( _transitionCode == RAction::REPLAN )
                 {
                     _ok = _makeTransition( STATE_PLANNING, 
                                            RAction::REPLAN );
@@ -88,12 +88,12 @@ namespace kuka
             }
             else if ( m_currentState->id() == STATE_PLAN_EXECUTION )
             {
-                if ( _transitionMsg == RAction::GRASP_TARGET )
+                if ( _transitionCode == RAction::GRASP_TARGET )
                 {
                     _ok = _makeTransition( STATE_TARGET_GRASPING, 
                                            RAction::GRASP_TARGET );
                 }
-                else ( _transitionMsg == RAction::RELEASE_TARGET )
+                else ( _transitionCode == RAction::RELEASE_TARGET )
                 {
                     _ok = _makeTransition( STATE_TARGET_RELEASING,
                                            RAction::RELEASE_TARGET );
@@ -101,7 +101,7 @@ namespace kuka
             }
             else if ( m_currentState->id() == STATE_TARGET_GRASPING )
             {
-                if ( _transitionMsg == RAction::RETRIEVE_TARGET )
+                if ( _transitionCode == RAction::RETRIEVE_TARGET )
                 {
                     _ok = _makeTransition( STATE_TARGET_RETRIEVING, 
                                            RAction::RETRIEVE_TARGET );
@@ -109,7 +109,7 @@ namespace kuka
             }
             else if ( m_currentState->id() == STATE_TARGET_RETRIEVING )
             {
-                if ( _transitionMsg == RAction::MAKE_PLAN_TO_RELEASE )
+                if ( _transitionCode == RAction::MAKE_PLAN_TO_RELEASE )
                 {
                     _ok = _makeTransition( STATE_PLANNING, 
                                            RAction::MAKE_PLAN_TO_RELEASE);
@@ -117,7 +117,7 @@ namespace kuka
             }
             else if ( m_currentState->id() == STATE_TARGET_RELEASING )
             {
-                if ( _transitionMsg == RAction::INIT )
+                if ( _transitionCode == RAction::INIT )
                 {
                     _ok = _makeTransition( STATE_START, 
                                            RAction::INIT );
@@ -129,7 +129,7 @@ namespace kuka
                 std::cout << "RDemoStateMachine> something went wrong "
                           << "while making a transition from state: "
                           << m_currentState->id() << " and transition msg: "
-                          << _transitionMsg << std::endl;
+                          << _transitionCode << std::endl;
             }
         }
         else if ( m_currentState->mode() == MODE_IDLE )

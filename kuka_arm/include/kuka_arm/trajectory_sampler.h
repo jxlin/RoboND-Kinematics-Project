@@ -53,7 +53,9 @@ class TrajectorySampler
     private:
 
     ros::NodeHandle nh_;
-
+    
+    bool m_waitForUser;
+    bool m_canReplan;
     int cycle_counter;
     std::string target_description_param;
 

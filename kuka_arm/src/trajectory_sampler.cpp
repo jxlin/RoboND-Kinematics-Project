@@ -72,6 +72,11 @@ TrajectorySampler::TrajectorySampler(ros::NodeHandle nh)
     bool demo;
     ros::param::get("trajectory_sampler/demo", demo);
 
+    // Get waitForUser param
+    ros::param::get("trajectory_sampler/waitForUser", m_waitForUser);
+    // Get replan param
+    ros::param::get("trajectory_sampler/replan", m_canReplan);
+
     // set RRT as the planner and set allowed planning time
     move_group.setPlannerId("RRTkConfigDefault");
     move_group.setPlanningTime(10.0);
@@ -173,7 +178,10 @@ TrajectorySampler::TrajectorySampler(ros::NodeHandle nh)
 
         // Publish messages to rviz
         visual_tools.trigger();
-        visual_tools.prompt("next step");
+        if ( m_waitForUser )
+        {
+            visual_tools.prompt("next step");
+        }
 
 
         /*
@@ -222,11 +230,30 @@ TrajectorySampler::TrajectorySampler(ros::NodeHandle nh)
 
         ROS_INFO( "State> planning" );
 
-        bool success = move_group.plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS;
-        ROS_INFO( "Visualizing plan to target: %s",
-                  success ? "SUCCEEDED" : "FAILED" );
+        bool success;
 
-        ROS_INFO( "State> displaying path to target" );
+        while ( true )
+        {
+            success = move_group.plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS;
+            ROS_INFO( "Visualizing plan to target: %s",
+                    success ? "SUCCEEDED" : "FAILED" );
+
+            if ( !m_canReplan )
+            {
+                break;
+            }
+
+            if ( success )
+            {
+                ROS_INFO( "State> displaying path to target" );
+                break;
+            }
+            else
+            {
+                ROS_INFO( "State> replanning..." );
+                ros::Duration(0.5).sleep();
+            }
+        }
 
         // Visualize the plan
         visual_tools.publishAxisLabeled(target_pose, "target_pose");
@@ -234,7 +261,10 @@ TrajectorySampler::TrajectorySampler(ros::NodeHandle nh)
                                   rviz_visual_tools::WHITE, rviz_visual_tools::XXXXLARGE );
         visual_tools.publishTrajectoryLine(my_plan.trajectory_, joint_model_group);
         visual_tools.trigger();
-        visual_tools.prompt("next step");
+        if ( m_waitForUser )
+        {
+            visual_tools.prompt("next step");
+        }
 
         /*
          * Convert plan to a set of eef poses for IK calculation
@@ -363,7 +393,10 @@ TrajectorySampler::TrajectorySampler(ros::NodeHandle nh)
         visual_tools.publishText( text_pose, "Reached target location",
                                   rviz_visual_tools::WHITE, rviz_visual_tools::XXXXLARGE);
         visual_tools.trigger();
-        visual_tools.prompt("next step");
+        if ( m_waitForUser )
+        {
+            visual_tools.prompt("next step");
+        }
 
         /*
          * Approach the target
@@ -379,8 +412,10 @@ TrajectorySampler::TrajectorySampler(ros::NodeHandle nh)
         success = move_group.move() == moveit::planning_interface::MoveItErrorCode::SUCCESS;
         ROS_INFO( "Target reach: %s",
                   success ? "SUCCEEDED" : "FAILED" );
-
-        visual_tools.prompt("next step");
+        if ( m_waitForUser )
+        {
+            visual_tools.prompt("next step");
+        }
 
         /*
          * Grasp the target
@@ -391,7 +426,10 @@ TrajectorySampler::TrajectorySampler(ros::NodeHandle nh)
         visual_tools.trigger();
         CloseGripper();
         ros::Duration(5.0).sleep();
-        visual_tools.prompt("next step");
+        if ( m_waitForUser )
+        {
+            visual_tools.prompt("next step");
+        }
 
         /*
          * Retract the gripper
@@ -407,7 +445,10 @@ TrajectorySampler::TrajectorySampler(ros::NodeHandle nh)
         ROS_INFO( "Target retrieval: %s",
                   success ? "SUCCEEDED" : "FAILED" );
 
-        visual_tools.prompt("next step");
+        if ( m_waitForUser )
+        {
+            visual_tools.prompt("next step");
+        }
 
         /*
          * Plan to bin location for drop-off
@@ -415,9 +456,27 @@ TrajectorySampler::TrajectorySampler(ros::NodeHandle nh)
         move_group.setStartStateToCurrentState();
         move_group.setPoseTarget(bin_pose);
 
-        success = move_group.plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS;
-        ROS_INFO( "Visualizing plan to drop location: %s",
-                  success ? "SUCCEEDED" : "FAILED" );
+        while ( true )
+        {
+            success = move_group.plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS;
+            ROS_INFO( "Visualizing plan to drop location: %s",
+                    success ? "SUCCEEDED" : "FAILED" );
+
+            if ( !m_canReplan )
+            {
+                break;
+            }
+
+            if ( success )
+            {
+                break;
+            }
+            else
+            {
+                ROS_INFO( "Replanning" );
+                ros::Duration(0.5).sleep();
+            }
+        }
 
         // Visualize the plan
         visual_tools.publishAxisLabeled(bin_pose, "drop_pose");
@@ -425,7 +484,10 @@ TrajectorySampler::TrajectorySampler(ros::NodeHandle nh)
                                   rviz_visual_tools::WHITE, rviz_visual_tools::XXXXLARGE );
         visual_tools.publishTrajectoryLine(my_plan.trajectory_, joint_model_group);
         visual_tools.trigger();
-        visual_tools.prompt("next step");
+        if ( m_waitForUser )
+        {
+            visual_tools.prompt("next step");
+        }
 
         /*
          * Execute the plan based on demo flag
@@ -552,7 +614,10 @@ TrajectorySampler::TrajectorySampler(ros::NodeHandle nh)
         visual_tools.publishText( text_pose, "Reached drop-off location",
                                   rviz_visual_tools::WHITE, rviz_visual_tools::XXXXLARGE );
         visual_tools.trigger();
-        visual_tools.prompt("next step");
+        if ( m_waitForUser )
+        {
+            visual_tools.prompt("next step");
+        }
 
         // Open the gripper and release the object
         // Display current state
@@ -569,7 +634,10 @@ TrajectorySampler::TrajectorySampler(ros::NodeHandle nh)
         visual_tools.publishText(text_pose, "  End of Pick-Place cycle\nPress Next to begin a new cycle",
                              rviz_visual_tools::WHITE, rviz_visual_tools::XXXXLARGE);
         visual_tools.trigger();
-        visual_tools.prompt("next step");
+        if ( m_waitForUser )
+        {
+            visual_tools.prompt("next step");
+        }
 
         // Move robot back to idle pose
         robot_current_state = move_group.getCurrentState();

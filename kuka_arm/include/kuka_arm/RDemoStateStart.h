@@ -18,12 +18,7 @@ namespace kuka
 
         public :
 
-        RDemoStateStart( RWorld* pWorld,
-                         moveit_visual_tools::MoveItVisualTools* pVisTools,
-                         moveit::planning_interface::MoveGroupInterface* pMoveGroup,
-                         moveit::planning_interface::MoveGroupInterface* pEefGroup,
-                         robot_state::JointModelGroup* pJointModelGroup,
-                         robot_state::JointModelGroup* pGripperModelGroup );
+        RDemoStateStart( RWorld* pWorld );
         ~RDemoStateStart();
 
         void enter( int action ) override;
