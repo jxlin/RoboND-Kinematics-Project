@@ -34,9 +34,13 @@ for i in range( _model.getNumJoints() ) :
     print 'transform ', i, ' - ', ( i + 1 ), ' :'
     pprint( _symTransform )
     
-# # print total transform
+# print total transform
 print 'total transform :'
 pprint( _totalTransform )
+
+# print total transform ( numeric )
+print 'total transform numeric :'
+print _model.getTotalTransform()
 
 # # compensate end effector pose
 # _eefCompensation = rot_axis3( pi ) * rot_axis2( -pi / 2 )

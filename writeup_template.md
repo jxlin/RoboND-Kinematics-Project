@@ -1,3 +1,7 @@
+---
+layout : notes
+---
+
 # **RoboND Kinematics Project: Pick & Place**
 
 [//]: # (Image References)
@@ -40,7 +44,7 @@ As a bonus, I implemented a web tool in typescript which helped me in this analy
 
 ## **Kinematic Analysis**
 
-### Extracting the Denavit Hantenberg ( DH ) parameters
+### **1. Extracting the Denavit Hantenberg ( DH ) parameters**
 
 To check the structure of the manipulator, we ran the FK_test.launch in ROS and checked the structure of the manipulator in RViz.
 
@@ -96,10 +100,11 @@ Links | alpha(i-1) | a(i-1) | d(i-1) | theta(i)
 5->6  |   -pi/2    |   0    | 0      | q6
 6->EE |     0      |   0    | 0.303  | 0
 
-#### 2. Using the DH parameter table you derived earlier, create individual transformation matrices about each joint. In addition, also generate a generalized homogeneous transform between base_link and gripper_link using only end-effector(gripper) pose.
+### **2. Derivation of joint-joint transforms and total End Effector transform**
 
+Recall the DH transformation matrix from frame *i-1* to frame *i*.
 
-
+<img src="https://latex.codecogs.com/gif.latex?\fn_cm&space;T_{i-1}^{i}&space;=&space;\begin{bmatrix}&space;\cos(\theta_{i})&space;&&space;-\sin(\theta_{i})&space;&&space;0&space;&&space;a_{i-1}\\&space;\sin(\theta_{i})&space;\cos(\alpha_{i-1})&space;&&space;\cos(\theta_{i})&space;\cos(\alpha_{i-1})&space;&&space;-\sin(\alpha_{i-1})&space;&&space;d_{i}&space;\sin(\alpha_{i-1})\\&space;\sin(\theta_{i})&space;\sin(\alpha_{i-1})&space;&&space;\cos(\theta_{i})&space;\sin(\alpha_{i-1})&space;&&space;\cos(\alpha_{i-1})&space;&&space;d_{i}&space;\cos(\alpha_{i-1})\\&space;0&space;&&space;0&space;&&space;0&space;&&space;1&space;\end{bmatrix}" title="T_{i-1}^{i} = \begin{bmatrix} \cos(\theta_{i}) & -\sin(\theta_{i}) & 0 & a_{i-1}\\ \sin(\theta_{i}) \cos(\alpha_{i-1}) & \cos(\theta_{i}) \cos(\alpha_{i-1}) & -\sin(\alpha_{i-1}) & d_{i} \sin(\alpha_{i-1})\\ \sin(\theta_{i}) \sin(\alpha_{i-1}) & \cos(\theta_{i}) \sin(\alpha_{i-1}) & \cos(\alpha_{i-1}) & d_{i} \cos(\alpha_{i-1})\\ 0 & 0 & 0 & 1 \end{bmatrix}" />
 
 #### 3. Decouple Inverse Kinematics problem into Inverse Position Kinematics and inverse Orientation Kinematics; doing so derive the equations to calculate all individual joint angles.
 

@@ -70,14 +70,6 @@ class RDHmodel( object ) :
     def getTotalEndEffectorTransform( self ) :
         return self.m_endEffectorTotalTransform
 
-    def getSymTotalTransform( self ) :
-        _totalTransform = eye( 4 )
-
-        for i in range( len( self.m_dhentries ) ) :
-            _totalTransform = _totalTransform * self.m_dhentries[ i ].getSymTransform()
-
-        return _totalTransform
-
     def getLastFrameXYZ( self ) :
         return self.m_xyz
 

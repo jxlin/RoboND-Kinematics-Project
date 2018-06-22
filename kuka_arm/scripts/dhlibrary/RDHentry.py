@@ -183,6 +183,11 @@ class RDHentry( object ):
         elif self.m_jointType == RJointType.PRISMATIC :
             _d_i = _d_i * self.m_jointSign + self.m_jointOffset
 
+        self.m_dhparamsSym[ self.m_sym_alpha_i_1 ] = _alpha_i_1
+        self.m_dhparamsSym[ self.m_sym_a_i_1 ]     = _a_i_1
+        self.m_dhparamsSym[ self.m_sym_d_i ]       = _d_i
+        self.m_dhparamsSym[ self.m_sym_theta_i ]   = _theta_i
+
         # update numeric transform
         self.m_transform[0,0] = np.cos( _theta_i )
         self.m_transform[1,0] = np.sin( _theta_i ) * np.cos( _alpha_i_1 )
@@ -205,9 +210,4 @@ class RDHentry( object ):
         self.m_transform[3,3] = 1
 
         # update symbolic transform
-        self.m_dhparamsSym[ self.m_sym_alpha_i_1 ] = self.m_dhparams[ RDHparams.alpha_i_1 ]
-        self.m_dhparamsSym[ self.m_sym_a_i_1 ] = self.m_dhparams[ RDHparams.a_i_1 ]
-        self.m_dhparamsSym[ self.m_sym_d_i ] = self.m_dhparams[ RDHparams.d_i ]
-        self.m_dhparamsSym[ self.m_sym_theta_i ] = self.m_dhparams[ RDHparams.theta_i ]
-
         self.m_symTransform.subs( self.m_dhparamsSym )
