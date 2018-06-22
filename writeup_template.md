@@ -26,10 +26,6 @@ The implementation is mainly in ROS, using the following tools :
 *   **Gazebo**, for simulation of the pick and place task.
 *   **RViz**, to visualize the kinematics of the manipulator.
 *   **MoveIt**, to make planning actions and get the trajectories we must follow.
-img_fk_test_launch
-img_fk_test_launchng :
-img_fk_test_launch
-img_fk_test_launchpeline]
 
 The work done in this project consists on doing the **Kinematic Analysis** of the Kuka KR210 robot in order to implement the **IK_server** ROS node, which will be in charge of giving a service for the environment to request joint trajectories, given the pose trajectories returned by the planner.
 
