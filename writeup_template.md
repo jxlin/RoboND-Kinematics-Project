@@ -1,42 +1,70 @@
-## Project: Kinematics Pick & Place
-### Writeup Template: You can use this file as a template for your writeup if you want to submit it as a markdown file, but feel free to use some other method and submit a pdf if you prefer.
-
----
-
-
-**Steps to complete the project:**  
-
-
-1. Set up your ROS Workspace.
-2. Download or clone the [project repository](https://github.com/udacity/RoboND-Kinematics-Project) into the ***src*** directory of your ROS Workspace.  
-3. Experiment with the forward_kinematics environment and get familiar with the robot.
-4. Launch in [demo mode](https://classroom.udacity.com/nanodegrees/nd209/parts/7b2fd2d7-e181-401e-977a-6158c77bf816/modules/8855de3f-2897-46c3-a805-628b5ecf045b/lessons/91d017b1-4493-4522-ad52-04a74a01094c/concepts/ae64bb91-e8c4-44c9-adbe-798e8f688193).
-5. Perform Kinematic Analysis for the robot following the [project rubric](https://review.udacity.com/#!/rubrics/972/view).
-6. Fill in the `IK_server.py` with your Inverse Kinematics code. 
-
+# **RoboND Kinematics Project: Pick & Place**
 
 [//]: # (Image References)
+
+[img_pipeline]: _imgs/img_pickAndPlace_pipeline_1.png
+[img_leojs_demo_scene]: _imgs/img_webtool_demo_scene.png
+[img_leojs_demo_playground]: _imgs/img_webtool_demo_playground.png
+[img_fk_test_launch]: _imgs/img_fk_test_launch.png
+[img_joints_from_kr210_urdf_1]: _imgs/img_joints_from_kr210_urdf_1.png
+[img_joints_from_kr210_urdf_2]: _imgs/img_joints_from_kr210_urdf_2.png
+[img_joint_definition]: _imgs/img_joint_definition.png
+[img_link_definition]: _imgs/img_link_definition.png
+
+[gif_fk_test]: _imgs/gif_fk_test.gif
 
 [image1]: ./misc_images/misc1.png
 [image2]: ./misc_images/misc3.png
 [image3]: ./misc_images/misc2.png
 
-## [Rubric](https://review.udacity.com/#!/rubrics/972/view) Points
-### Here I will consider the rubric points individually and describe how I addressed each point in my implementation.  
+## **About the project**
 
----
-### Writeup / README
+This project consists of implementing the Inverse Kinematics of the KUKA KR210 manipulator, in order to perform a pick and place task in a simulated environment.
 
-#### 1. Provide a Writeup / README that includes all the rubric points and how you addressed each one.  You can submit your writeup as markdown or pdf.  
+The implementation is mainly in ROS, using the following tools :
 
-You're reading it!
+*   **Gazebo**, for simulation of the pick and place task.
+*   **RViz**, to visualize the kinematics of the manipulator.
+*   **MoveIt**, to make planning actions and get the trajectories we must follow.
+img_fk_test_launch
+img_fk_test_launchng :
+img_fk_test_launch
+img_fk_test_launchpeline]
 
-### Kinematic Analysis
-#### 1. Run the forward_kinematics demo and evaluate the kr210.urdf.xacro file to perform kinematic analysis of Kuka KR210 robot and derive its DH parameters.
+The work done in this project consists on doing the **Kinematic Analysis** of the Kuka KR210 robot in order to implement the **IK_server** ROS node, which will be in charge of giving a service for the environment to request joint trajectories, given the pose trajectories returned by the planner.
 
-Here is an example of how to include an image in your writeup.
+As a bonus, I implemented a web tool in typescript which helped me in this analysis, as well as to understand some of the low level details that you run into when trying to implement something from scratch.
 
-![alt text][image1]
+![leojs_demo_scene][img_leojs_demo_scene]
+
+![leojs_demo_playground][img_leojs_demo_playground]
+
+## **Kinematic Analysis**
+
+### Extracting the Denavit Hantenberg ( DH ) parameters
+
+To check the structure of the manipulator, we ran the FK_test.launch in ROS and checked the structure of the manipulator in RViz.
+
+![fk test][img_fk_test_launch]
+
+From the test, we can see that the structure of the robot consists of **6 revolute joints** ( to control the Forward kinematics ) and **2 prismatic joints** ( to control the gripper open-close operations ). The data for these joints can be found in the **kr210.urdf.xacro** file, which contains the definition of the KR210 manipulator.
+
+![urdf joints data 1][img_joints_from_kr210_urdf_1]
+![urdf joints data 2][img_joints_from_kr210_urdf_2]
+
+The important data to construct the DH representation of the manipulator consists of :
+
+*   **parent** : link in which this joint is defined ( respect to ).
+*   **child**  : link which the joint affects, respect to the parent's frame.
+*   **origin** : pose of joint respect to parent's frame.
+*   **axis**   : direction of the joint axis respect to parent's frame.
+
+The information can look a bit redundant if you already know what the DH representation should look like ( as we already saw part of it in the lecture videos ), but if you haven't, this information will define the kinematic structure of the manipulator ( this information is used by ROS to define a **kinematic tree**, which is the one used in the **FK_test** demo ).
+
+To understand how to interpret this data, we can go to the ROS documentation on **links** and **joints** for urdf files, where we can find thess helpful images :
+
+![link urdf][img_link_definition]
+![joint urdf][img_joint_definition]
 
 #### 2. Using the DH parameter table you derived earlier, create individual transformation matrices about each joint. In addition, also generate a generalized homogeneous transform between base_link and gripper_link using only end-effector(gripper) pose.
 
