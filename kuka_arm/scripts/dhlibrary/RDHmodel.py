@@ -40,6 +40,18 @@ class RDHmodel( object ) :
 
         return np.eye( 4 )
 
+    def getSymJointTransform( self, indx ) :
+        if self._isValidIndex( indx ) :
+            return self.m_dhentries[ indx ].getSymTransform()
+
+        return None
+
+    def getSymJointTransformEvaluated( self, indx ) :
+        if self._isValidIndex( indx ) :
+            return self.m_dhentries[ indx ].getSymTransformEvaluated()
+
+        return None
+
     def getTransformInRange( self, fromIndx, toIndx ) :
         if ( 0 <= fromIndx ) and ( fromIndx <= toIndx ) and ( toIndx <= ( self.getNumJoints() - 1 ) ) :
             _cumTransform = np.eye( 4 )
@@ -57,6 +69,14 @@ class RDHmodel( object ) :
 
     def getTotalEndEffectorTransform( self ) :
         return self.m_endEffectorTotalTransform
+
+    def getSymTotalTransform( self ) :
+        _totalTransform = eye( 4 )
+
+        for i in range( len( self.m_dhentries ) ) :
+            _totalTransform = _totalTransform * self.m_dhentries[ i ].getSymTransform()
+
+        return _totalTransform
 
     def getLastFrameXYZ( self ) :
         return self.m_xyz
