@@ -35,6 +35,8 @@
 [img_tf_3_0]: _imgs/img_tf_3_0.png
 [img_tf_6_3]: _imgs/img_tf_6_3.png
 
+[img_ik_problem_separation]: _imgs/img_ik_problem_separation.png
+
 [gif_fk_test]: _imgs/gif_fk_test.gif
 
 [image1]: ./misc_images/misc1.png
@@ -53,9 +55,11 @@ The implementation is mainly in ROS, using the following tools :
 
 The work done in this project consists on doing the **Kinematic Analysis** of the Kuka KR210 robot in order to implement the **IK_server** ROS node, which will be in charge of giving a service for the environment to request joint trajectories, given the pose trajectories returned by the planner.
 
-As a bonus, I implemented a web tool in typescript which helped me in this analysis, as well as to understand some of the low level details that you run into when trying to implement something from scratch.
+As a bonus I implemented a web tool in typescript which helped me in this analysis, as well as to understand some of the low level details that you run into when trying to implement something from scratch.
 
 ![leojs_demo_scene][img_leojs_demo_scene]
+
+[foo bar fun](https://wpumacay.github.io/leoJS/index.html)
 
 ![leojs_demo_playground][img_leojs_demo_playground]
 
@@ -128,15 +132,21 @@ Recall the DH transformation matrix from frame *i-1* to frame *i*.
 By replacing for each DH frame we get the following transforms :
 
 ![DH frames 1 to 0][img_tf_1_0]
+
 ![DH frames 2 to 1][img_tf_2_1]
+
 ![DH frames 3 to 2][img_tf_3_2]
+
 ![DH frames 4 to 3][img_tf_4_3]
+
 ![DH frames 5 to 4][img_tf_5_4]
+
 ![DH frames 6 to 5][img_tf_6_5]
 
 Calculating intermediate transforms from *3 to 0* and *6 to 3* ( we will need them later for the inverse kinematics solution ) we get:
 
 ![dh frames 3 to 0][img_tf_3_0]
+
 ![dh frames 6 to 3][img_tf_6_3]
 
 Combining these we get the total transform from frame 6 respect to frame 0 :
@@ -159,7 +169,9 @@ By compensating the last frame we get the following transformation for the gripp
 
 ![img_tf_eef_base][img_tf_eef_base]
 
-#### 3. Decouple Inverse Kinematics problem into Inverse Position Kinematics and inverse Orientation Kinematics; doing so derive the equations to calculate all individual joint angles.
+### 3. Inverse Kinematic Analysis
+
+![img_ik_problem_separation][img_ik_problem_separation]
 
 And here's where you can draw out and show your math for the derivation of your theta angles. 
 
