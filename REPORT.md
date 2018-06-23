@@ -1,6 +1,3 @@
----
-layout : notes
----
 
 # **RoboND Kinematics Project: Pick & Place**
 
@@ -17,6 +14,23 @@ layout : notes
 [img_joints_frames]: _imgs/img_joints_frames.png
 [img_dh_representation_1]: _imgs/img_dh_representation_1.png
 [img_dh_representation_2]: _imgs/img_dh_representation_2.png
+
+[img_tf_i_i_1]: _imgs/img_tf_i_i_1.png
+[img_tf_6_5]: _imgs/img_tf_6_5.png
+[img_tf_5_4]: _imgs/img_tf_5_4.png
+[img_tf_4_3]: _imgs/img_tf_4_3.png
+[img_tf_3_2]: _imgs/img_tf_3_2.png
+[img_tf_2_1]: _imgs/img_tf_2_1.png
+[img_tf_1_0]: _imgs/img_tf_1_0.png
+
+[img_total_transform_1]: _imgs/img_total_transform_1.png
+[img_total_transform_2]: _imgs/img_total_transform_2.png
+[img_total_transform_3]: _imgs/img_total_transform_3.png
+[img_total_transform_4]: _imgs/img_total_transform_4.png
+[img_total_transform_5]: _imgs/img_total_transform_5.png
+
+[img_tf_3_0]: _imgs/img_tf_3_0.png
+[img_tf_6_3]: _imgs/img_tf_6_3.png
 
 [gif_fk_test]: _imgs/gif_fk_test.gif
 
@@ -104,7 +118,35 @@ Links | alpha(i-1) | a(i-1) | d(i-1) | theta(i)
 
 Recall the DH transformation matrix from frame *i-1* to frame *i*.
 
-<img src="https://latex.codecogs.com/gif.latex?\fn_cm&space;T_{i-1}^{i}&space;=&space;\begin{bmatrix}&space;\cos(\theta_{i})&space;&&space;-\sin(\theta_{i})&space;&&space;0&space;&&space;a_{i-1}\\&space;\sin(\theta_{i})&space;\cos(\alpha_{i-1})&space;&&space;\cos(\theta_{i})&space;\cos(\alpha_{i-1})&space;&&space;-\sin(\alpha_{i-1})&space;&&space;d_{i}&space;\sin(\alpha_{i-1})\\&space;\sin(\theta_{i})&space;\sin(\alpha_{i-1})&space;&&space;\cos(\theta_{i})&space;\sin(\alpha_{i-1})&space;&&space;\cos(\alpha_{i-1})&space;&&space;d_{i}&space;\cos(\alpha_{i-1})\\&space;0&space;&&space;0&space;&&space;0&space;&&space;1&space;\end{bmatrix}" title="T_{i-1}^{i} = \begin{bmatrix} \cos(\theta_{i}) & -\sin(\theta_{i}) & 0 & a_{i-1}\\ \sin(\theta_{i}) \cos(\alpha_{i-1}) & \cos(\theta_{i}) \cos(\alpha_{i-1}) & -\sin(\alpha_{i-1}) & d_{i} \sin(\alpha_{i-1})\\ \sin(\theta_{i}) \sin(\alpha_{i-1}) & \cos(\theta_{i}) \sin(\alpha_{i-1}) & \cos(\alpha_{i-1}) & d_{i} \cos(\alpha_{i-1})\\ 0 & 0 & 0 & 1 \end{bmatrix}" />
+![DH frames transformation][img_tf_i_i_1]
+
+By replacing for each DH frame we get the following transforms :
+
+![DH frames 1 to 0][img_tf_1_0]
+![DH frames 2 to 1][img_tf_2_1]
+![DH frames 3 to 2][img_tf_3_2]
+![DH frames 4 to 3][img_tf_4_3]
+![DH frames 5 to 4][img_tf_5_4]
+![DH frames 6 to 5][img_tf_6_5]
+
+Calculating intermediate transforms from *3 to 0* and *6 to 3* ( we will need them later for the inverse kinematics solution ) we get:
+
+![dh frames 3 to 0][img_tf_3_0]
+![dh frames 6 to 3][img_tf_6_3]
+
+Combining these we get the total transform from frame 6 respect to frame 0 :
+
+![DH total transform 1][img_total_transform_1]
+
+![DH total transform 2][img_total_transform_2]
+
+![DH total transform 3][img_total_transform_3]
+
+![DH total transform 4][img_total_transform_4]
+
+![DH total transform 5][img_total_transform_5]
+
+This transformation is the total transform up to the last DH frame, so we have to take into account the gripper offset respect to this last frame. 
 
 #### 3. Decouple Inverse Kinematics problem into Inverse Position Kinematics and inverse Orientation Kinematics; doing so derive the equations to calculate all individual joint angles.
 
