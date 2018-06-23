@@ -29,6 +29,9 @@
 [img_total_transform_4]: _imgs/img_total_transform_4.png
 [img_total_transform_5]: _imgs/img_total_transform_5.png
 
+[img_tf_eef_compensation]: _imgs/img_tf_eef_compensation.png
+[img_tf_eef_base]: _imgs/img_tf_eef_base.png
+
 [img_tf_3_0]: _imgs/img_tf_3_0.png
 [img_tf_6_3]: _imgs/img_tf_6_3.png
 
@@ -114,6 +117,8 @@ Links | alpha(i-1) | a(i-1) | d(i-1) | theta(i)
 5->6  |   -pi/2    |   0    | 0      | q6
 6->EE |     0      |   0    | 0.303  | 0
 
+We haven't include the orientation compensation of the gripper frame because we will deal with it separately.
+
 ### **2. Derivation of joint-joint transforms and total End Effector transform**
 
 Recall the DH transformation matrix from frame *i-1* to frame *i*.
@@ -146,7 +151,13 @@ Combining these we get the total transform from frame 6 respect to frame 0 :
 
 ![DH total transform 5][img_total_transform_5]
 
-This transformation is the total transform up to the last DH frame, so we have to take into account the gripper offset respect to this last frame. 
+To go from this last frame to the gripper frame we have to compensate with the following transformation matrix :
+
+![DH eef compensation][img_tf_eef_compensation]
+
+By compensating the last frame we get the following transformation for the gripper frame respect to the base frame :
+
+![img_tf_eef_base][img_tf_eef_base]
 
 #### 3. Decouple Inverse Kinematics problem into Inverse Position Kinematics and inverse Orientation Kinematics; doing so derive the equations to calculate all individual joint angles.
 
