@@ -36,6 +36,7 @@
 [img_tf_6_3]: _imgs/img_tf_6_3.png
 
 [img_ik_problem_separation]: _imgs/img_ik_problem_separation.png
+[img_ik_solver_algorithm]: _imgs/img_ik_solver_algorithm.png
 
 [gif_fk_test]: _imgs/gif_fk_test.gif
 
@@ -171,11 +172,15 @@ By compensating the last frame we get the following transformation for the gripp
 
 ### 3. Inverse Kinematic Analysis
 
+To solve the Inverse Kinematics of the manipulator we will take as advantage the fact that the 3 last joints have axes that met in a single point, which lets us decouple the inverse kinematics into two subproblems : 
+
+*   **Find the first 3 joints** by decoupling the wrist and solving the position of the wrist ( which is define by the 3 first joints ).
+*   **Find the last 3 joints** by solving for the orientation of the wrist ( which is defined by all joints, but as we already know the first 3, we only have to solve for the remaining 3 )
+
 ![img_ik_problem_separation][img_ik_problem_separation]
 
-And here's where you can draw out and show your math for the derivation of your theta angles. 
 
-![alt text][image2]
+![IK solver algorithm][img_ik_solver_algorithm]
 
 ### Project Implementation
 
