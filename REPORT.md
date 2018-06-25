@@ -38,10 +38,14 @@
 [img_ik_problem_separation]: _imgs/img_ik_problem_separation.png
 [img_ik_solver_algorithm]: _imgs/img_ik_solver_algorithm.png
 
+[img_ik_decoupling_1]: _imgs/img_ik_decoupling_1.png
+[img_ik_decoupling_2]: _imgs/img_ik_decoupling_2.png
+[img_ik_decoupling_3]: _imgs/img_ik_decoupling_3.png
+
+[img_ik_geometricSolution_case1]: _imgs/img_ik_geometricSolution_case1.png
+
 [gif_fk_test]: _imgs/gif_fk_test.gif
 
-[image1]: ./misc_images/misc1.png
-[image2]: ./misc_images/misc3.png
 [image3]: ./misc_images/misc2.png
 
 ## **About the project**
@@ -172,15 +176,49 @@ By compensating the last frame we get the following transformation for the gripp
 
 ### 3. Inverse Kinematic Analysis
 
-To solve the Inverse Kinematics of the manipulator we will take as advantage the fact that the 3 last joints have axes that met in a single point, which lets us decouple the inverse kinematics into two subproblems : 
+#### IK problem Decoupling
+
+To solve the Inverse Kinematics of the manipulator we will take advantage of the fact that the 3 last joints have axes that met in a single point, which lets us decouple the inverse kinematics into two subproblems : 
 
 *   **Find the first 3 joints** by decoupling the wrist and solving the position of the wrist ( which is define by the 3 first joints ).
 *   **Find the last 3 joints** by solving for the orientation of the wrist ( which is defined by all joints, but as we already know the first 3, we only have to solve for the remaining 3 )
 
+The following picture shows the wrist center, from which we will do the decoupling.
+
 ![img_ik_problem_separation][img_ik_problem_separation]
 
+The information we are given is the required pose of the end effector, which consists of its position and orientation, information we will use to compute the wrist pose ( position and orientation ).
+
+Recall the generalized total transformation between the gripper link and the base link :
+
+![total ee transform][img_tf_eef_base]
+
+From the last column we can get that the position of the end effector is computed from the position of the wrist center compensated with the gripper offset ( distance and orientation )
+
+![IK decoupling step 1][img_ik_decoupling_1]
+
+By solving for the wrist center, we get the following :
+
+![IK decoupling step 2][img_ik_decoupling_2]
+
+We see that we only need to have the orientation of the last frame in order to compute the wrist center, which can be done by using the orientation of the end effector and the compensation of the end effector respect to the 6th dh frame, as follows :
+
+![IK decoupling step 3][img_ik_decoupling_3]
+
+Once we have the wrist position and orientation, we can use the fact that these only depend on the first 3 joint variables, which will help us find these variables geometrically.
+Then we can use them to compute the other 3 joint variables, which in conjunction with the first 3 joints give the orientation of the wrist. By replacing the solved joints into the rotation matrix for the first 3 frames, we can compute the rotation matrix for the last 3 frames, and then solve for the last 3 joints we need.
+
+The whole process can be implemented in the following algorithm :
 
 ![IK solver algorithm][img_ik_solver_algorithm]
+
+Almost all the necessary computations are explained in the algorithm above, except for the geometrical part that is used to solve for joints 2 and 3, which we will explain in the following lines.
+
+#### IK geometrical solution for joints 2 and 3
+
+The remaining joints 2 and 3 can be computed geometrically from the following figure :
+
+![IK solution for joints 2 and 3 - case 1][img_ik_geometricSolution_case1]
 
 ### Project Implementation
 
