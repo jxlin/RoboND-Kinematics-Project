@@ -24,7 +24,7 @@ from sympy import * # for symbolic operations
 
 # R-DH library
 from dhlibrary.RDHmodelKukaKR210 import *
-
+# DH model for kuka KR210
 g_kuka_dh_model = None
 
 def handle_calculate_IK(req):
@@ -37,24 +37,8 @@ def handle_calculate_IK(req):
     else:
 
         ### Your FK code here
-        # Create symbols
-    #
-    #
-    # Create Modified DH parameters
-    #
-    #
-    # Define Modified DH Transformation matrix
-    #
-    #
-    # Create individual transformation matrices
-    #
-    #
-    # Extract rotation matrices from the transformation matrices
-    #
-    #
-        ###
-
-
+        ## CREATION OF THE DH MODEL WAS MADE BELOW ( in main ) ...
+        ## AS A GLOBAL VARIABLE ( g_kuka_dh_model )
 
         # Initialize service response
         joint_trajectory_list = []
@@ -74,14 +58,7 @@ def handle_calculate_IK(req):
                     req.poses[x].orientation.z, req.poses[x].orientation.w])
 
             ### Your IK code here
-            # Compensate for rotation discrepancy between DH parameters and Gazebo
-            #
-            #
-            # Calculate joint angles using Geometric IK method
-            #
-            #
-            ###
-
+            ## Extract data for ik solver
             _xyz = np.zeros( ( 3, 1 ) )
             _xyz[0,0] = px
             _xyz[1,0] = py
@@ -92,8 +69,10 @@ def handle_calculate_IK(req):
             _rpy[1,0] = pitch
             _rpy[2,0] = yaw
 
+            ## Request ik solution
             _joints = g_kuka_dh_model.inverse( _xyz, _rpy )
 
+            ## Assemble solution with a just-in-case check
             theta1 = 0.0
             theta2 = 0.0
             theta3 = 0.0

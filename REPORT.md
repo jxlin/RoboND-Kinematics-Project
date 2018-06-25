@@ -47,6 +47,10 @@
 [img_ik_joints_1_2_3_solution]: _imgs/img_ik_joints_1_2_3_solution.png
 [img_ik_solution_helpers]: _imgs/img_ik_solution_helpers.png
 
+[img_ik_inverse_method_pt1]: _imgs/img_ik_inverse_method_pt1.png
+[img_ik_inverse_method_pt2]: _imgs/img_ik_inverse_method_pt2.png
+[img_ik_inverse_method_pt3]: _imgs/img_ik_inverse_method_pt3.png
+
 [gif_fk_test]: _imgs/gif_fk_test.gif
 
 [image3]: ./misc_images/misc2.png
@@ -241,11 +245,49 @@ This concludes the calculations needed for the inverse kinematics of the manipul
 
 ## **Project Implementation**
 
+In the following subsections I will explain some of the details of my implementation, which in order to make it modular and reusable I had to separate some of the functionality into modules.
+
+The first implementation was made in Typescript, because from some time I wanted to finish a simulator for testing FK and IK in the browser.
+
+After the implementation was made in Typescript, and the implementation worked correctly in FK and IK tasks, I just ported it to Python without some of the unnecessary parts, thus completing the project requirements after successfully picking the target and dropping it to the bin.https://github.com/wpumacay/RoboND-Kinematics-Project/blob/master/kuka_arm/scripts/dhlibrary/RDHentry.py
+
+In the whttps://github.com/wpumacay/RoboND-Kinematics-Project/blob/master/kuka_arm/scripts/dhlibrary/RDHentry.pyebugger to check that my https://github.com/wpumacay/RoboND-Kinematics-Project/blob/master/kuka_arm/scripts/dhlibrary/RDHentry.py
+
 ### 0. DH library
-    TODO
+    
+The DH representation allows us to easily modularize each DH frame by abstracting away the functionality needed from the DH table, which in our case yield to the abstraction of the DH table entries and the DH model itself. 
+
+First, the necessary data to hold into the abstraction of each DH entry in the table would be:
+
+*   The parameters from it's entry in the DH table ( including joint offsets and sign, max-min ranges, joint type )
+*   The current joint value
+*   The transformation matrix itself ( numeric, with methods to update it from the joint value )
+*   The transformation matrix itself ( symbolic, just for double checking )
+
+With this in mind, the file [**RDHentry.py**](https://github.com/wpumacay/RoboND-Kinematics-Project/blob/master/kuka_arm/scripts/dhlibrary/RDHentry.py) contains the implementation of the abstraction of each entry in the DH table, just needing a mechanism to hold all these entries, which is the abstraction of the DH model itself.
+
+This abstraction should have the following pieces: 
+
+*   The total transform from frame 0 to frame 6.
+*   The compensation matrix for the end effector.
+*   The total transform from frame 0 to the end effector.
+*   Getters and setters for handling the inner data.
+*   Some utility functions.
+*   A method to override in order to implement inverse kinematics for different model.
+
+The implementation of the above abstraction can be found in the file [**RDHmodel.py**](https://github.com/wpumacay/RoboND-Kinematics-Project/blob/master/kuka_arm/scripts/dhlibrary/RDHmodel.py), which is the interface for the different types of manipulators for which we want to make its DH representation, leaving to the user only the implementation of the **_buildModel** method ( create DH entries, and defining the end effector compensation ) and the **inverse** kinematics method when deriving from this class.
+
 ### 1. Inverse kinematics implementation
-    TODO
+
+Building from the previous abstractions, we extended the base DH model in order to implement the inverse kinematics for our Kuka KR210 manipulator, which can be found in the file [**RDHmodelKukaKR210.py**](https://github.com/wpumacay/RoboND-Kinematics-Project/blob/master/kuka_arm/scripts/dhlibrary/RDHmodelKukaKR210.py).
+
+This file implements a child class for the base **RDHmodel** class, adding the functionality for the IK solver shown in the previous sections into the **inverse** method, which is shown below:
+
+![IK inverse method pt1][img_ik_inverse_method_pt1]
+![IK inverse method pt2][img_ik_inverse_method_pt2]
+![IK inverse method pt3][img_ik_inverse_method_pt3]
+
 ### 2. Some useful tools
-    TODO
+TODO
 ### 3. Results
-    TODO
+TODO
