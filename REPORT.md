@@ -60,9 +60,13 @@
 
 [image3]: ./misc_images/misc2.png
 
+[**Video of the submission**](http://www.youtube.com/watch?v=X3oHxq_AeLk)
+
 ## **About the project**
 
 This project consists of implementing the Inverse Kinematics of the KUKA KR210 manipulator, in order to perform a pick and place task in a simulated environment.
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/X3oHxq_AeLk" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
 
 The implementation is mainly in ROS, using the following tools :
 
@@ -70,15 +74,17 @@ The implementation is mainly in ROS, using the following tools :
 *   **RViz**, to visualize the kinematics of the manipulator.
 *   **MoveIt**, to make planning actions and get the trajectories we must follow.
 
-The work done in this project consists on doing the **Kinematic Analysis** of the Kuka KR210 robot in order to implement the **IK_server** ROS node, which will be in charge of giving a service for the environment to request joint trajectories, given the pose trajectories returned by the planner.
+The work done in this project consists on doing the **Kinematic Analysis** of the Kuka KR210 manipulator in order to implement the **IK_server** ROS node, which will be in charge of giving a service for the environment to request joint trajectories, given the pose trajectories returned by the planner.
 
 As a bonus I implemented a web tool in typescript which helped me in this analysis, as well as to understand some of the low level details that you run into when trying to implement something from scratch.
 
 ![leojs_demo_scene][img_leojs_demo_scene]
 
-[foo bar fun](https://wpumacay.github.io/leoJS/index.html)
+[Demo of pick-place in webtool](https://wpumacay.github.io/leoJS/index.html)
 
 ![leojs_demo_playground][img_leojs_demo_playground]
+
+[Demo of dh maker in webtool](https://wpumacay.github.io/leoJS/playground.html)
 
 ## **Kinematic Analysis**
 
