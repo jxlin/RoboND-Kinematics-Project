@@ -58,7 +58,14 @@
 [img_ik_publisher]: _imgs/img_ik_publisher.png
 [img_trajectory_logging]: _imgs/img_trajectory_logging.png
 
-[image3]: ./misc_images/misc2.png
+[gif_pick_place_run]: _imgs/gif_pick_place_run.gif
+
+[img_check_replan]: _imgs/img_check_replan.png
+[img_user_extra_options]: _imgs/img_user_extra_options.png
+
+[gif_leoJS_demo]: _imgs/gif_leoJS_demo.gif
+[gif_leoJS_playground_demo]: _imgs/gif_leoJS_playground_demo.gif
+[gif_leoJS_playground_editing]: _imgs/gif_leoJS_playground_editing.gif
 
 [**Video of the submission**](http://www.youtube.com/watch?v=X3oHxq_AeLk)
 
@@ -66,7 +73,7 @@
 
 This project consists of implementing the Inverse Kinematics of the KUKA KR210 manipulator, in order to perform a pick and place task in a simulated environment.
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/X3oHxq_AeLk" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+![PICK-PLACE run][gif_pick_place_run]
 
 The implementation is mainly in ROS, using the following tools :
 
@@ -211,7 +218,7 @@ Recall the generalized total transformation between the gripper link and the bas
 
 ![total ee transform][img_tf_eef_base]
 
-From the last column we can get that the position of the end effector is computed from the position of the wrist center compensated with the gripper offset ( distance and orientation )
+From the last column we that the position of the end effector is computed from the position of the wrist center and the gripper offset ( distance and orientation )
 
 ![IK decoupling step 1][img_ik_decoupling_1]
 
@@ -223,7 +230,7 @@ We see that we only need to have the orientation of the last frame in order to c
 
 ![IK decoupling step 3][img_ik_decoupling_3]
 
-Once we have the wrist position and orientation, we can use the fact that these only depend on the first 3 joint variables, which will help us find these variables geometrically.
+Once we have the wrist position and orientation, we can use the fact that the first only depends on the first 3 joint variables, which will help us find these variables geometrically.
 Then we can use them to compute the other 3 joint variables, which in conjunction with the first 3 joints give the orientation of the wrist. By replacing the solved joints into the rotation matrix for the first 3 frames, we can compute the rotation matrix for the last 3 frames, and then solve for the last 3 joints we need.
 
 The whole process can be implemented in the following algorithm :
@@ -258,11 +265,11 @@ This concludes the calculations needed for the inverse kinematics of the manipul
 
 In the following subsections I will explain some of the details of my implementation, which in order to make it modular and reusable I had to separate some of the functionality into modules.
 
-The first implementation was made in Typescript, because from some time I wanted to finish a simulator for testing FK and IK in the browser.
+The first implementation was made in Typescript, because for some time I wanted to finish a basic robot visualizer in the browser.
 
 After the implementation was made in Typescript, and the implementation worked correctly in FK and IK tasks, I just ported it to Python without some of the unnecessary parts, thus completing the project requirements after successfully picking the target and dropping it to the bin.
 
-While porting I had to make some tools to check that my implementation was correct, and because I didn't have access to a debugger, as in the Typescript implementation. This yield some test UI in ROS and some extra launchs to check that the FK and IK implementations were correct.
+While porting I had to make some tools to check that my implementation was correct, because I didn't have access to a debugger, as in the Typescript implementation. This yield some test UI, some testing nodes and some extra launch files all in ROS, to check that the FK and IK implementations were correct.
 
 ### 0. DH library
     
@@ -331,4 +338,44 @@ And here is how the tools work, in single pose mode, and trajectory mode :
 ![IK testing trajectory dropoff][gif_ik_test_trajectory_dropoff]
 
 ### 3. Results
-TODO
+
+With the IK implementation discussed earlier I got to successfully complete the required number of picks and places of the project. One of these pick-place operations is shown below.
+
+![PICK-PLACE run 2][gif_pick_place_run]
+
+In the first launches some of the times the cycle crashed because of the planner, as a few times it didn't come up with a plan ( it just returned empty ). The logs in the **trajectory_sampler.cpp** helped to identify this issue, but when rvit happened that cycle failed spectacularly, and I had to press next and wait till the nexrvt cycle to continue the process. ( Btw, I was testing all these not in the VM, as it run vervry very slow ).
+rv
+To avoid this issue I added some checks in the **trajectory_samplerrv.cpp** in order to continue replan if the planner returned failure.rv
+
+![check replan][img_check_replan]
+
+Also, it was quite annoying to have to press next for every state in the pick and place cycle, so I just added a check in the **trajectory_sampler.cpp** to skip the prompting for the user if wanted.
+This worked, but for some reason when grasping the object, sometimes this slipped from the gripper, so I avoid using this functionality in the submission. It seems that a small time has to be given to allow the gripper to grasp the object successfully, even when the event grasp returned successful ( at least that's what the log said ), and that time was the time that the user waited till pressed the next option in RViz.
+
+All these configurations can be changed in the inverse_kinematics.launch file :
+
+![checking options][img_user_extra_options]
+
+And for a last test, just before running the IK implementation in the actual pick-place cycle, I ran the IK_debug.py script ( moved it also, to the scripts folder ) and this helped me find the second case I had not considered in the IK implementation, as it fail for a some test cases and then in the IK_tester as well.
+
+After fixing these issues, everything worked correctly, just returning a different set of joint angles for case 2 as the IKsolver might yield a different but still correct solution. The wrist center and other checkings passed normally in for all test cases.
+
+### 4. About the webtool
+
+For some time I wanted to implement a robot visualizer in the browser, but I kept leaving it for later. The project gave me the perfect excuse to implement some of this stuff, as I was also implementing a rendering engine from scratch, to gain a bit more experience designing and implementing a bit bigger systems, instead of using already-made tools that kind of leave me frustrated as to how things worked under the hood. Also, I would have to learn how to use a special library ( like ThreeJS, or BabylonJS ) in order to build my visualizer, but as I saw in some of my friends projects, they spent more time learning how to hack into the library and make some specific stuff work, than making the actual implementation of what they wanted.
+
+By no means I intend to say that you should always make things from scratch, but when learning, it might be useful to get your hands dirtier than required.
+
+The [**visualizer**](https://github.com/wpumacay/leoJS) I implemented was based in Typescript and WebGL, and I built it on top of the [**engine**](https://github.com/wpumacay/cat1js) I was making for some other simulators-visualizer that I will make in the future.
+
+[**Here**](https://wpumacay.github.io/leoJS/index.html) is the first demo, which consists of the scene of the pick and place project in the browser ( give it some time to load, as has to parse the urdfs and the collada files, and initialize some stuff ) :
+
+![leojs demo][gif_leoJS_demo]
+
+[**Here**](https://wpumacay.github.io/leoJS/playground.html) is the other demo, which is an editor that allows you to build a DH representation for a manipulator and play with it :
+
+![leojs demo playground][gif_leoJS_playground_demo]
+
+![leojs editing playground][gif_leoJS_playground_editing]
+
+The editing part generates the DH representation that you request, and also creates the model if there is one ( like the KukaKR210 case, for which we have the urdf files ).

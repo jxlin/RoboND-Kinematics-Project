@@ -5,7 +5,7 @@ import tf
 import numpy as np
 
 # R-DH library
-from dhlibrary_debug.RDHmodelKukaKR210 import *
+from dhlibrary.RDHmodelKukaKR210 import *
 
 '''
 Format of test case is [ [[EE position],[EE orientation as quaternions]],[WC location],[joint angles]]
@@ -14,10 +14,10 @@ From here you can adjust the joint angles to find thetas, use the gripper to ext
 to find the position of the wrist center. These newly generated test cases can be added to the test_cases dictionary.
 '''
 
-test_cases = {1:[[[2.16135,-1.42635,1.55109],
-                  [0.708611,0.186356,-0.157931,0.661967]],
-                  [1.89451,-1.44302,1.69366],
-                  [-0.65,0.45,-0.36,0.95,0.79,0.49]],
+test_cases = {1:[[[2.16135,-1.42635,1.55109],# ee position
+                  [0.708611,0.186356,-0.157931,0.661967]],# ee quat
+                  [1.89451,-1.44302,1.69366],# wc position
+                  [-0.65,0.45,-0.36,0.95,0.79,0.49]],# joints
               2:[[[-0.56754,0.93663,3.0038],
                   [0.62073, 0.48318,0.38759,0.480629]],
                   [-0.638,0.64198,2.9988],
@@ -176,6 +176,6 @@ if __name__ == "__main__":
     g_kuka_dh_model = RDHmodelKukaKR210()
 
     # Change test case number for different scenarios
-    test_case_number = 2
+    test_case_number = 3
 
     test_code(test_cases[test_case_number])
