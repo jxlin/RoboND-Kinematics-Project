@@ -43,6 +43,9 @@
 [img_ik_decoupling_3]: _imgs/img_ik_decoupling_3.png
 
 [img_ik_geometricSolution_case1]: _imgs/img_ik_geometricSolution_case1.png
+[img_ik_geometricSolution_case2]: _imgs/img_ik_geometricSolution_case2.png
+[img_ik_joints_1_2_3_solution]: _imgs/img_ik_joints_1_2_3_solution.png
+[img_ik_solution_helpers]: _imgs/img_ik_solution_helpers.png
 
 [gif_fk_test]: _imgs/gif_fk_test.gif
 
@@ -220,15 +223,29 @@ The remaining joints 2 and 3 can be computed geometrically from the following fi
 
 ![IK solution for joints 2 and 3 - case 1][img_ik_geometricSolution_case1]
 
-### Project Implementation
+![IK solution for joints 2 and 3 - case 2][img_ik_geometricSolution_case2]
 
-#### 1. Fill in the `IK_server.py` file with properly commented python code for calculating Inverse Kinematics based on previously performed Kinematic Analysis. Your code must guide the robot to successfully complete 8/10 pick and place cycles. Briefly discuss the code you implemented and your results. 
+There are two cases to consider because of the position of the wrist, and they yield the following equations for the remaining joints :
 
+![IK solution joints 1, 2 and 3 equations][img_ik_joints_1_2_3_solution]
 
-Here I'll talk about the code, what techniques I used, what worked and why, where the implementation might fail and how I might improve it if I were going to pursue this project further.  
+In this case only joint 2 has two separate cases, depending on the results of an intermediate angle.
 
+All intermediate quantities are computed in the same manner for both cases ( the math for these intermediate quantities turns out to be the same for both cases ), and yield the following computations:
 
-And just for fun, another example image:
-![alt text][image3]
+![IK solution 1,2,3 helpers][img_ik_solution_helpers]
 
+Once we have the first three joint values, the remaining ones can be computed by solving for the wrist orientation, which is explained in the full algorithm shown above.
 
+This concludes the calculations needed for the inverse kinematics of the manipulator, leaving only the implementation to be explained, which I proceed to explain in the following section
+
+## **Project Implementation**
+
+### 0. DH library
+    TODO
+### 1. Inverse kinematics implementation
+    TODO
+### 2. Some useful tools
+    TODO
+### 3. Results
+    TODO
