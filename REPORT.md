@@ -52,6 +52,11 @@
 [img_ik_inverse_method_pt3]: _imgs/img_ik_inverse_method_pt3.png
 
 [gif_fk_test]: _imgs/gif_fk_test.gif
+[gif_ik_test_single_pose]: _imgs/gif_ik_test_single_pose.gif
+[gif_ik_test_trajectory_dropoff]: _imgs/gif_ik_test_trajectory_dropoff.gif
+
+[img_ik_publisher]: _imgs/img_ik_publisher.png
+[img_trajectory_logging]: _imgs/img_trajectory_logging.png
 
 [image3]: ./misc_images/misc2.png
 
@@ -288,6 +293,36 @@ This file implements a child class for the base **RDHmodel** class, adding the f
 ![IK inverse method pt3][img_ik_inverse_method_pt3]
 
 ### 2. Some useful tools
-TODO
+
+First, I had to test that the Forward Kinematics were correctly, and because RViz showed only the movement achieved by the kinematic tree, I had to compare the output of the end effector pose in RViz and the pose returned by my FK implementation.
+
+To do this I made a node called [**FK_tester.py**](https://github.com/wpumacay/RoboND-Kinematics-Project/blob/master/kuka_arm/scripts/FK_tester.py) node a bit in order to publish the end effector poses from both RViz and the my **RDHmodel** implementation.
+
+To run the test just execute the **FK_test.launch** file :
+
+    roslaunch kuka_arm FK_test.launch
+
+The results are shown in the following gif, were you can see in the plot that the poses are the same ( except for some delay between the time the poses are measured ):
+
+![FK tester][gif_fk_test]
+
+Then, I had to check that the IK implementation was correct, so I wanted to check that visually, as in the webtool I made ( will explain in the next sections ).
+
+I ended up implementing a node called [**IK_tester.py**](https://github.com/wpumacay/RoboND-Kinematics-Project/blob/master/kuka_arm/scripts/IK_tester.py) to make this possible, basically sending the joints previously sent by the **joints_state_publisher** from previous tests, but this time these joints were calculated by the IK implementation in the model previous discussed.
+
+I also wanted a way to manipulate the end effector pose, as I could in the FK test, by means of the joints_state_publisher UI, so I implemented a simple UI in the [**RIKpublisherUI.py**](https://github.com/wpumacay/RoboND-Kinematics-Project/blob/master/kuka_arm/scripts/utils/RIKpublisherUI.py), which allowed me to control just that.
+
+![IK publisher][img_ik_publisher]
+
+Finally, I added some functionality to check that my implementation was following the trajectories correctly, so I made a basic logger in the **trajectory_sampler.cpp** file and logged a single trajectory from the pick and place loop, which then I could sent using the UI by clicking a button.
+
+![IK trajectory logging][img_trajectory_logging]
+
+And here is how the tools work, in single pose mode, and trajectory mode :
+
+![IK testing single pose][gif_ik_test_single_pose]
+
+![IK testing trajectory dropoff][gif_ik_test_trajectory_dropoff]
+
 ### 3. Results
 TODO

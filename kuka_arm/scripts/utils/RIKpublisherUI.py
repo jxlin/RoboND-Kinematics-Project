@@ -27,7 +27,7 @@ DEFAULT_RANGE_TICKS = 100
 
 class SliderWrapper :
 
-    def __init__( self, layout, slider, label, text, rmin, rmax, ticks = 100 ) :
+    def __init__( self, layout, slider, label, text, value, rmin, rmax, ticks = 100 ) :
         # widgets
         self.m_wslider = slider
         self.m_wlabel = label
@@ -40,6 +40,11 @@ class SliderWrapper :
         self.m_range = rmax - rmin
         self.m_ticks = ticks
 
+        self.m_value = 0
+
+        # make slider be at that default value
+        self.m_wslider.setValue( ( ( value - self.m_min ) / ( self.m_range ) ) * ( self.m_ticks ) )
+        # update internal value
         self._updateValue()
 
     def getLayout( self ) :
@@ -133,7 +138,6 @@ class RIKpublisherUI( QWidget ) :
         _slider = QSlider( Qt.Horizontal )
         _slider.setRange( 0, DEFAULT_RANGE_TICKS )
         _slider.setValue( DEFAULT_RANGE_TICKS / 2 )
-        _slider.valueChanged.connect( self.onSliderValueChanged )
 
         _hbox.addWidget( _label )
         _hbox.addWidget( _text )
@@ -141,7 +145,10 @@ class RIKpublisherUI( QWidget ) :
         _vbox.addWidget( _slider )
 
         _sliderWrapped = SliderWrapper( _vbox, _slider, _label, _text, 
-                                        rmin, rmax, DEFAULT_RANGE_TICKS )
+                                        value, rmin, rmax, DEFAULT_RANGE_TICKS )
+
+        # Hack-> Do this after to avoid calling the update value the first time
+        _slider.valueChanged.connect( self.onSliderValueChanged )
 
         return _sliderWrapped
 
@@ -149,12 +156,18 @@ class RIKpublisherUI( QWidget ) :
         # Update all sliders
         self.m_lock.acquire( True )
 
-        self.m_sld_x._updateValue()
-        self.m_sld_y._updateValue()
-        self.m_sld_z._updateValue()
-        self.m_sld_roll._updateValue()
-        self.m_sld_pitch._updateValue()
-        self.m_sld_yaw._updateValue()
+        if self.m_sld_x :
+            self.m_sld_x._updateValue()
+        if self.m_sld_y :
+            self.m_sld_y._updateValue()
+        if self.m_sld_z :
+            self.m_sld_z._updateValue()
+        if self.m_sld_roll :
+            self.m_sld_roll._updateValue()
+        if self.m_sld_pitch :
+            self.m_sld_pitch._updateValue()
+        if self.m_sld_yaw :
+            self.m_sld_yaw._updateValue()
 
         self.m_lock.release()
 
