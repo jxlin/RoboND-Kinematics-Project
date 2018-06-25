@@ -249,9 +249,9 @@ In the following subsections I will explain some of the details of my implementa
 
 The first implementation was made in Typescript, because from some time I wanted to finish a simulator for testing FK and IK in the browser.
 
-After the implementation was made in Typescript, and the implementation worked correctly in FK and IK tasks, I just ported it to Python without some of the unnecessary parts, thus completing the project requirements after successfully picking the target and dropping it to the bin.https://github.com/wpumacay/RoboND-Kinematics-Project/blob/master/kuka_arm/scripts/dhlibrary/RDHentry.py
+After the implementation was made in Typescript, and the implementation worked correctly in FK and IK tasks, I just ported it to Python without some of the unnecessary parts, thus completing the project requirements after successfully picking the target and dropping it to the bin.
 
-In the whttps://github.com/wpumacay/RoboND-Kinematics-Project/blob/master/kuka_arm/scripts/dhlibrary/RDHentry.pyebugger to check that my https://github.com/wpumacay/RoboND-Kinematics-Project/blob/master/kuka_arm/scripts/dhlibrary/RDHentry.py
+While porting I had to make some tools to check that my implementation was correct, and because I didn't have access to a debugger, as in the Typescript implementation. This yield some test UI in ROS and some extra launchs to check that the FK and IK implementations were correct.
 
 ### 0. DH library
     
